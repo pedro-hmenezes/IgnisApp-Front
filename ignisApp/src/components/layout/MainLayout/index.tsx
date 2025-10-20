@@ -36,15 +36,18 @@ export function MainLayout({ children }: MainLayoutProps) {
       <div className="content-area">
         <header className="header">
           <div className="header-left">
-            {/* O BOTÃO VOLTOU PARA O LUGAR CERTO */}
             <button className="menu-toggle-btn" onClick={toggleSidebar}>
               <FiMenu />
             </button>
+          </div>
+
+          <div className="header-center">
             <div className="search-bar">
               <FiSearch />
               <input type="text" placeholder="Pesquise no Sistema" />
             </div>
           </div>
+
           <div className="header-right">
             <button className="icon-btn"><FiBell /></button>
             <img src={userAvatar} alt="Avatar do Usuário" className="user-avatar" />
