@@ -1,7 +1,8 @@
 // src/components/layout/Sidebar/index.tsx
 import { useState } from 'react';
 import './style.css';
-import { FiHome, FiFileText, FiMap, FiBarChart2, FiSettings, FiLogOut, FiChevronDown, FiChevronUp, FiClipboard, FiChevronLeft } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { FiHome, FiFileText, FiMap, FiBarChart2, FiSettings, FiLogOut, FiClipboard, FiChevronLeft } from 'react-icons/fi';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -13,44 +14,42 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
   return (
     <aside className={isOpen ? 'sidebar open' : 'sidebar'}>
-      <div className="sidebar-header">
-        {/* O botão foi removido daqui */}
-        <span className={isOpen ? 'logo-text' : 'logo-text hidden'}>Ignis Group</span>
-      </div>
-
+      {/* ... seu sidebar-header ... */}
       <nav className="nav-menu">
-        {/* Botão X para fechar a sidebar (visível quando onToggle é fornecido) */}
         {onToggle && (
           <button className="sidebar-close-btn" onClick={onToggle} aria-label="Fechar sidebar">
             <FiChevronLeft />
           </button>
         )}
-        <a href="#" className="nav-item"><FiHome /> <span>Início</span></a>
-        <a href="#" className="nav-item"><FiFileText /> <span>Relatórios</span></a>
+        
+        {/* 2. Troque <a> por <Link> */}
+        <Link to="/" className="nav-item"><FiHome /> <span>Início</span></Link>
+        <Link to="/reports" className="nav-item"><FiFileText /> <span>Relatórios</span></Link>
 
         <div className="nav-item-container">
           <div className={isOccurrencesOpen ? "nav-item active" : "nav-item"} onClick={() => isOpen && setOccurrencesOpen(!isOccurrencesOpen)}>
             <div className="submenu-toggle">
               <FiClipboard /> <span>Registro de Ocorrências</span>
             </div>
-            {isOpen && (isOccurrencesOpen ? <FiChevronUp /> : <FiChevronDown />)}
+            {/* ... ícones do submenu ... */}
           </div>
           {isOccurrencesOpen && (
             <div className={isOpen ? 'submenu active' : 'submenu'}>
-              <a href="#" className="submenu-item">Registrar Ocorrência</a>
-              <a href="#" className="submenu-item">Ocorrência em Andamento</a>
-              <a href="#" className="submenu-item">Histórico de Ocorrências</a>
+              {/* 3. Este é o link principal para a nova tela */}
+              <Link to="/register" className="submenu-item">Registrar Ocorrência</Link>
+              <Link to="/ongoing" className="submenu-item">Ocorrência em Andamento</Link>
+              <Link to="/history" className="submenu-item">Histórico de Ocorrências</Link>
             </div>
           )}
         </div>
 
-        <a href="#" className="nav-item"><FiMap /> <span>Mapa de Ocorrências</span></a>
-        <a href="#" className="nav-item"><FiBarChart2 /> <span>Dashboard</span></a>
+        <Link to="/map" className="nav-item"><FiMap /> <span>Mapa de Ocorrências</span></Link>
+        <Link to="/dashboard" className="nav-item"><FiBarChart2 /> <span>Dashboard</span></Link>
       </nav>
 
       <div className="sidebar-footer">
-        <a href="#" className="nav-item"><FiSettings /> <span>Configurações</span></a>
-        <a href="#" className="nav-item"><FiLogOut /> <span>Sair</span></a>
+        <Link to="/settings" className="nav-item"><FiSettings /> <span>Configurações</span></Link>
+        <Link to="/logout" className="nav-item"><FiLogOut /> <span>Sair</span></Link>
       </div>
     </aside>
   );
