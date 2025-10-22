@@ -203,3 +203,41 @@
     right: 12px; /* ajusta posição para a largura menor */
   }
 }
+
+/* Adicione ou verifique se existe em src/components/layout/Sidebar/style.css */
+
+/* Estilo base para o botão de logout, para parecer um nav-item */
+.logout-btn {
+  background: none;
+  border: none;
+  width: 100%; /* Ocupa a largura toda */
+  text-align: left; /* Alinha o texto à esquerda */
+  padding: 12px 28px; /* Mesmo padding dos outros nav-item */
+  color: #e6dfe0; /* Mesma cor */
+  cursor: pointer;
+  display: flex; /* Para alinhar ícone e texto */
+  align-items: center; /* Alinha ícone e texto */
+  gap: 14px; /* Mesmo gap */
+  font-size: inherit; /* Usa o mesmo tamanho de fonte */
+  font-family: inherit; /* Usa a mesma fonte */
+}
+
+/* Efeito hover igual aos outros itens */
+.logout-btn:hover {
+  background-color: #4a3a49;
+  color: #fff;
+}
+
+/* Ajuste quando a sidebar está fechada */
+.sidebar:not(.open) .logout-btn {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+  gap: 0;
+}
+.sidebar:not(.open) .logout-btn span {
+  display: none; /* Esconde o texto "Sair" */
+}
+.sidebar:not(.open) .logout-btn svg {
+  margin: 0; /* Centraliza o ícone */
+}
