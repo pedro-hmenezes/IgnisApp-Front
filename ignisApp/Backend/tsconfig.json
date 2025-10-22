@@ -20,6 +20,6 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force"
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "types.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
