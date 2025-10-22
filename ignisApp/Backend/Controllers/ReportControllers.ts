@@ -1,15 +1,19 @@
 import type { Request, Response } from 'express';
-import { ReportService } from '../Services/ReportService';
+import { ReportModel } from '../Models/ReportModel';
+import { registerLog } from '../Services/LogService';
 
-export class ReportController {
-  static async exportReport(req: Request, res: Response) {
-    const { id, format, user, occurrences } = req.body;
-
+export const createReport = async (req: Request, res: Response) => {
     try {
-      const filePath = await ReportService.export(id, format, user, occurrences);
-      res.download(filePath);
+        const { title, description, userId } = req.body;
+
+        const newReport = new ReportModel({ title, description, createdBy: userId });
+        await newReport.save();
+
+        // Registro do log
+        await registerLog('Criação de relatório', `Relatório "${title}" criado com sucesso.`, userId);
+
+        res.status(201).json(newReport);
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao exportar relatório', error });
+        res.status(500).json({ message: 'Erro ao criar relatório', error });
     }
-  }
-}
+};
