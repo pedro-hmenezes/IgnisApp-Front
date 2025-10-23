@@ -1,13 +1,16 @@
 import { connectDB } from './Config/db.js';
-
-connectDB();
-
 import express from 'express';
 import cors from 'cors';
+
+connectDB();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.send('API do IgnisApp está rodando!');
+});
 
 app.get('/api/ping', (_req, res) => {
   res.json({ message: 'Backend funcionando!' });
