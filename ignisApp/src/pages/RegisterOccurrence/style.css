@@ -1,19 +1,48 @@
 /* src/pages/RegisterOccurrence/style.css */
-.register-container h1 {
+
+/* Adiciona um escopo para evitar conflitos */
+.register-occurrence-page {
+  /* Espaçamento básico para o container da página */
+  padding: 16px;
+}
+
+/* Estilo do Botão Voltar (agora independente) */
+.register-occurrence-page .back-button {
+  display: inline-flex; /* Ajusta para o conteúdo */
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #555;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  margin-bottom: 20px; /* Adiciona espaço ABAIXO do botão */
+}
+.register-occurrence-page .back-button:hover {
+  background-color: #f1f3f5;
+  border-color: #aaa;
+}
+
+/* Título (com margem superior removida e inferior ajustada) */
+.register-occurrence-page h1 {
   font-size: 2rem;
   font-weight: 600;
   color: #2c3e50;
-  margin-top: 0;
-  margin-bottom: 24px;
+  margin: 0 0 24px 0; /* Remove margem superior, ajusta inferior */
 }
 
-.type-grid {
+/* --- Estilos existentes para .type-grid, .type-card --- */
+
+.register-occurrence-page .type-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 24px;
 }
 
-.type-card {
+.register-occurrence-page .type-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -30,17 +59,17 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.02);
 }
 
-.type-card:hover {
+.register-occurrence-page .type-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
   border-color: #adb5bd;
 }
 
-.type-card span {
+.register-occurrence-page .type-card span {
   max-width: 80%;
 }
 
-.type-card .icon-wrapper {
+.register-occurrence-page .type-card .icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,7 +84,7 @@
   transition: all 0.2s ease;
 }
 
-.type-card:hover .icon-wrapper {
-  background-color: #3b1721;
+.register-occurrence-page .type-card:hover .icon-wrapper {
+  background-color: #3b1721; /* Cor do tema */
   color: #ffffff;
 }

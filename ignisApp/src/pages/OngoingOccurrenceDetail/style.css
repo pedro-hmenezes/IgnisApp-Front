@@ -220,3 +220,147 @@
 .detail-actions .button-primary:hover { background-color: #a02020; }
 .detail-actions .button-secondary { background-color: #f1f3f5; color: #555; border: 1px solid #ccc; }
 .detail-actions .button-secondary:hover { background-color: #e9ecef; }
+
+.loading-state, .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  min-height: 300px; /* Para ocupar algum espaço */
+  color: #6c757d;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.loading-state .spinner {
+  animation: spin 1.5s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Estilos para estado de erro */
+.error-state {
+  color: #c62828; /* Vermelho */
+}
+.error-state svg {
+  margin-bottom: 15px;
+}
+/* Ajuste para o botão voltar na tela de erro */
+.error-state .back-button {
+   position: absolute;
+   top: 100px; /* Ajuste conforme necessário */
+   left: 20px;
+}
+
+/* Estilo para mostrar coordenadas atuais (opcional) */
+.current-coords {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 15px;
+  background-color: #f8f9fa;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  text-align: center;
+}
+
+/* Botão GPS */
+.gps-button-detail {
+  margin-top: 15px;
+  padding: 8px 12px;
+  background-color: #e9ecef;
+  border: 1px solid #ccc;
+  color: #495057;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex; /* Use inline-flex para alinhar ícone/texto */
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s; /* Adiciona transição */
+}
+.gps-button-detail:hover:not(:disabled) { /* Evita hover no estado desabilitado */
+   background-color: #dee2e6; 
+}
+.gps-button-detail:disabled { /* Estilo quando desabilitado (loading) */
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Spinner inline para botões */
+.spinner-inline {
+  animation: spin 1.5s linear infinite;
+}
+/* Reutiliza a animação spin que já definimos antes */
+@keyframes spin { 
+  0% { transform: rotate(0deg); } 
+  100% { transform: rotate(360deg); } 
+}
+
+/* Mensagem de erro específica do GPS */
+.error-message.gps-error {
+  color: #c62828;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Estilo para o botão de perigo (Cancelar) */
+.detail-actions .button-danger {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex; /* Ajusta para ícone + texto */
+  align-items: center;
+  gap: 8px;
+  background-color: #dc3545; /* Vermelho Bootstrap Danger */
+  color: white;
+}
+
+.detail-actions .button-danger:hover:not(:disabled) {
+  background-color: #c82333; /* Vermelho mais escuro */
+}
+
+.detail-actions .button-danger:disabled {
+  background-color: #f8d7da; /* Vermelho claro quando desabilitado */
+  color: #721c24;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Mensagem de erro específica do cancelamento */
+.error-message.cancel-error {
+  color: #c62828;
+  font-size: 0.85rem;
+  /* Alinhar com os botões ou exibir abaixo */
+  margin-left: 15px; /* Exemplo de espaçamento */
+  align-self: center; /* Tenta centralizar verticalmente com os botões */
+}
+
+/* Ajuste para o spinner inline (se ainda não tiver) */
+.spinner-inline {
+  animation: spin 1.5s linear infinite;
+}
+@keyframes spin { 
+  0% { transform: rotate(0deg); } 
+  100% { transform: rotate(360deg); } 
+}
+
+/* Ajuste no container de ações para espaçamento */
+.detail-actions {
+  display: flex;
+  /* justify-content: flex-end; */ /* Removemos para alinhar cancelar à esquerda */
+  align-items: center; /* Alinha verticalmente */
+  gap: 12px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}

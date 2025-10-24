@@ -1,137 +1,230 @@
 // src/pages/OngoingOccurrenceDetail/index.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+// 1. Importar updateOccurrence
+import { getOccurrenceById, updateOccurrence, cancelOccurrence } from '../../api/occurrenceService'; 
+import type { OccurrenceDetail } from '../../types/occurrence'; // Verifique o caminho
 import './style.css';
-// Importaremos ícones conforme necessário
-import { FiArrowLeft, FiMapPin, FiCamera, FiVideo, FiEdit2 } from 'react-icons/fi'; 
+import { FiArrowLeft, FiMapPin, FiLoader, FiAlertCircle, FiTrash2 } from 'react-icons/fi'; // Ícones necessários
 
-// SIMULAÇÃO DE DADOS: Ocorrências recebidas da central (mesmo mock de antes)
-const mockOccurrences = [
-  { id: 'OCC-001', naturezaInicial: 'Incêndio em Residência', endereco: 'Rua Augusta, 123 - Casa Amarela, Recife', status: 'Em Deslocamento', horaRecebimento: '14:52', tipoViatura: 'VT-0845' },
-  { id: 'OCC-002', naturezaInicial: 'Atropelamento', endereco: 'Av. Boa Viagem, 456 - Boa Viagem, Recife', status: 'Aguardando Equipe', horaRecebimento: '15:10', tipoViatura: 'UR-1234' },
-  { id: 'OCC-003', naturezaInicial: 'Queda de Altura', endereco: 'Rua da Moeda, 789 - Recife Antigo, Recife', status: 'Aguardando Equipe', horaRecebimento: '15:21', tipoViatura: 'AR-5678' }
-];
+  // ... (Mock da Timeline - sem mudança)
+  const mockTimeline = [ { time: '15:36', event: 'Ocorrência encontrada' }, { time: '15:05', event: 'Viatura em Deslocamento' }, { time: '14:52', event: 'Ocorrência Registrada' } ];
 
-// Mock da Timeline (F-12)
-const mockTimeline = [
-  { time: '15:36', event: 'Ocorrência encontrada' },
-  { time: '15:05', event: 'Viatura em Deslocamento' },
-  { time: '14:52', event: 'Ocorrência Registrada' },
-];
+  export default function OngoingOccurrenceDetail() {
+    const { occurrenceId } = useParams<{ occurrenceId: string }>();
+    const navigate = useNavigate();
 
-export default function OngoingOccurrenceDetail() {
-  const { occurrenceId } = useParams(); // Pega o ID da URL
-  const navigate = useNavigate();
-  const [occurrence, setOccurrence] = useState<any>(null); // Estado para guardar os dados da ocorrência
+    const [occurrence, setOccurrence] = useState<OccurrenceDetail | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-  // Busca (simulada) os dados da ocorrência quando o componente carrega
-  useEffect(() => {
-    const foundOccurrence = mockOccurrences.find(occ => occ.id === occurrenceId);
-    if (foundOccurrence) {
-      setOccurrence(foundOccurrence);
-    } else {
-      // Ocorrência não encontrada, talvez redirecionar?
-      console.error("Ocorrência não encontrada:", occurrenceId);
-      navigate('/ongoing'); // Volta para a lista
+    const [isUpdatingGps, setIsUpdatingGps] = useState(false);
+    const [gpsError, setGpsError] = useState<string | null>(null);
+    
+  // === NOVO ESTADO para a ação de Cancelar ===
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+    useEffect(() => {
+      if (!occurrenceId) {
+        setError('ID da ocorrência inválido.');
+        setIsLoading(false);
+        navigate('/occurrences');
+        return;
+      }
+
+      const fetchOccurrenceDetail = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const data = await getOccurrenceById(occurrenceId);
+          setOccurrence(data);
+        } catch (err) {
+          console.error(err);
+          setError('Falha ao carregar detalhes da ocorrência.');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchOccurrenceDetail();
+    }, [occurrenceId, navigate]);
+
+    const formatDetailedAddress = (addr: OccurrenceDetail['enderecoCompleto'], fallback?: string): string => {
+      if (addr) return `${addr.rua}, ${addr.numero} - ${addr.bairro}, ${addr.municipio}`;
+      return fallback || 'Endereço não disponível';
+    };
+
+    const handleGetGps = () => {
+      if (!navigator.geolocation || !occurrenceId) {
+        setGpsError('Geolocalização não suportada ou ID da ocorrência ausente.');
+        return;
+      }
+      setIsUpdatingGps(true);
+      setGpsError(null);
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+          const coordinatesPayload = { coordenadas: { latitude, longitude, precisao: accuracy, timestamp: new Date().toISOString() } };
+          try {
+            const updated = await updateOccurrence(occurrenceId, coordinatesPayload);
+            setOccurrence(updated);
+            alert('Localização GPS atualizada com sucesso!');
+          } catch (apiError) {
+            console.error('Erro ao salvar coordenadas GPS:', apiError);
+            setGpsError('Falha ao salvar a localização. Tente novamente.');
+          } finally {
+            setIsUpdatingGps(false);
+          }
+        },
+        (geoError) => {
+          console.error('Erro ao obter GPS:', geoError);
+          setGpsError(`Não foi possível obter a localização: ${geoError.message}`);
+          setIsUpdatingGps(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    };
+
+    // === NOVA FUNÇÃO para Cancelar Ocorrência ===
+    const handleCancelOccurrence = async () => {
+      if (!occurrenceId) return;
+      const confirmCancel = window.confirm('Tem certeza que deseja cancelar esta ocorrência? Esta ação não pode ser desfeita.');
+      if (!confirmCancel) return;
+
+      setIsCancelling(true);
+      setCancelError(null);
+      try {
+        await cancelOccurrence(occurrenceId);
+        alert('Ocorrência cancelada com sucesso!');
+        navigate('/occurrences');
+      } catch (apiError) {
+        console.error(`Erro ao cancelar ocorrência ${occurrenceId}:`, apiError);
+        setCancelError('Falha ao cancelar a ocorrência. Tente novamente.');
+        alert('Erro ao cancelar a ocorrência.');
+      } finally {
+        setIsCancelling(false);
+      }
+    };
+
+    if (isLoading) {
+      return (
+        <div className="detail-container loading">
+          <FiLoader className="spinner" size={30} />
+          <p>Carregando detalhes da ocorrência...</p>
+        </div>
+      );
     }
-  }, [occurrenceId, navigate]);
 
-  // Se os dados ainda não carregaram, mostra uma mensagem
-  if (!occurrence) {
-    return <div className="detail-container loading">Carregando detalhes da ocorrência...</div>;
+    if (error) {
+      return (
+        <div className="detail-container error-state">
+          <button onClick={() => navigate('/occurrences')} className="back-button" style={{ position: 'absolute', top: '20px', left: '20px' }}>
+            <FiArrowLeft /> Voltar para Lista
+          </button>
+          <FiAlertCircle size={30} />
+          <p>{error}</p>
+        </div>
+      );
+    }
+
+    if (!occurrence) {
+      return (
+        <div className="detail-container error-state">
+          <button onClick={() => navigate('/occurrences')} className="back-button" style={{ position: 'absolute', top: '20px', left: '20px' }}>
+            <FiArrowLeft /> Voltar para Lista
+          </button>
+          <FiAlertCircle size={30} />
+          <p>Ocorrência não encontrada.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="detail-container">
+        <div className="detail-header">
+          <button onClick={() => navigate('/occurrences')} className="back-button">
+            <FiArrowLeft /> Voltar para Lista
+          </button>
+          <h1>Ver Detalhes</h1>
+        </div>
+
+    <h2>{occurrence.naturezaInicial}</h2>
+    <p className="address-detail">{formatDetailedAddress(occurrence.enderecoCompleto, typeof occurrence.endereco === 'string' ? occurrence.endereco : undefined)}</p>
+
+        <div className="detail-grid">
+          <div className="detail-column">
+            <div className="info-card">
+              <h3>Campos</h3>
+              <div className="field-group">
+                <label>Tipo</label>
+                <span>{occurrence.naturezaInicial?.toUpperCase()}</span>
+              </div>
+              <div className="field-group">
+                <label>Status</label>
+                <span>{occurrence.status?.toUpperCase()}</span>
+              </div>
+              <div className="field-group">
+                <label>Viatura Pré-Atribuída</label>
+                <span>{occurrence.tipoViatura || 'N/A'}</span>
+              </div>
+              <p style={{ marginTop: '20px', color: '#888' }}><i>(Formulário da Etapa 2 virá aqui)</i></p>
+            </div>
+
+            <div className="info-card map-card">
+              <h3>Localização</h3>
+              {occurrence.coordenadas && (
+                <div className="current-coords">
+                  Lat: {occurrence.coordenadas.latitude?.toFixed(6)}, Lon: {occurrence.coordenadas.longitude?.toFixed(6)} (Precisão: {occurrence.coordenadas.precisao?.toFixed(0)}m)
+                </div>
+              )}
+              <div className="map-placeholder">
+                <p><i>(Componente de Mapa será inserido aqui)</i></p>
+                <button onClick={handleGetGps} className="gps-button-detail" disabled={isUpdatingGps}>
+                  {isUpdatingGps ? (<><FiLoader className="spinner-inline" size={16} /> Atualizando...</>) : (<><FiMapPin /> Obter/Atualizar GPS</>)}
+                </button>
+              </div>
+              {gpsError && <p className="error-message gps-error">{gpsError}</p>}
+            </div>
+          </div>
+
+          <div className="detail-column">
+            <div className="info-card media-card">{/* media card placeholder */}</div>
+            <div className="info-card timeline-card">
+              <h3>Timeline (F-12)</h3>
+              <ul className="timeline">
+                {mockTimeline.map((item, idx) => (
+                  <li key={idx}><span className="time">{item.time}</span><span className="event">{item.event}</span></li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="detail-actions">
+          <button 
+            className="button-danger"
+            onClick={handleCancelOccurrence}
+            disabled={isCancelling || isLoading}
+          >
+            {isCancelling ? (<><FiLoader className="spinner-inline" size={16} /> Cancelando...</>) : (<><FiTrash2 /> Cancelar Ocorrência</>)}
+          </button>
+
+          {cancelError && <p className="error-message cancel-error">{cancelError}</p>}
+
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}> 
+            <button className="button-secondary" disabled={isLoading || isCancelling}>Baixar Formulário Completo</button>
+            <button className="button-primary" disabled={isLoading || isCancelling}>Ver/Editar Formulário Completo</button>
+         </div>
+        </div>
+      </div>
+    );
   }
 
-  // Função para o requisito F-04: Captura GPS
-  const handleGetGps = () => {
-    // ... (mesma lógica que tínhamos antes, podemos colocar num hook depois)
-    alert("Funcionalidade GPS a ser implementada aqui.");
-  };
-
-  // Funções placeholder para F-05 (Foto), F-10 (Video), F-06 (Assinatura)
-  const handleTakePhoto = () => alert("Funcionalidade Câmera (F-05) a ser implementada.");
-  const handleRecordVideo = () => alert("Funcionalidade Vídeo (F-10) a ser implementada.");
-  const handleGetSignature = () => alert("Funcionalidade Assinatura (F-06) a ser implementada.");
-
-
-  return (
-    <div className="detail-container">
-      <div className="detail-header">
-        <button onClick={() => navigate('/ongoing')} className="back-button">
-          <FiArrowLeft /> Voltar para Lista
-        </button>
-        <h1>Ver Detalhes</h1>
-      </div>
-      
-      <h2>{occurrence.naturezaInicial}</h2>
-      <p className="address-detail">{occurrence.endereco}</p>
-
-      <div className="detail-grid">
-        {/* --- Coluna 1: Campos e Localização --- */}
-        <div className="detail-column">
-          <div className="info-card">
-            <h3>Campos</h3>
-            <div className="field-group">
-              <label>Tipo</label>
-              <span>{occurrence.naturezaInicial.toUpperCase()}</span> {/* Mostra o tipo inicial */}
-            </div>
-            <div className="field-group">
-              <label>Status</label>
-              <span>{occurrence.status.toUpperCase()}</span>
-            </div>
-             <div className="field-group">
-              <label>Viatura</label>
-              <span>{occurrence.tipoViatura}</span> {/* Exemplo, pegando do mock */}
-            </div>
-            {/* Aqui entrarão os inputs para os campos da Etapa 2 */}
-            <p style={{marginTop: '20px', color: '#888'}}><i>(Formulário da Etapa 2 virá aqui)</i></p>
-          </div>
-
-          <div className="info-card map-card">
-            <h3>Localização</h3>
-            {/* Placeholder para o Mapa */}
-            <div className="map-placeholder">
-              <p><i>(Componente de Mapa será inserido aqui)</i></p>
-              <button onClick={handleGetGps} className="gps-button-detail">
-                <FiMapPin /> Obter/Atualizar GPS (F-04)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* --- Coluna 2: Mídia e Timeline --- */}
-        <div className="detail-column">
-           <div className="info-card media-card">
-            <h3>Mídia</h3>
-            {/* Placeholder para a galeria de fotos/vídeos */}
-            <div className="media-placeholder">
-               <img src="https://via.placeholder.com/200x150?text=Exemplo+Foto" alt="Exemplo Mídia" />
-              <p><i>(Galeria de Mídia)</i></p>
-            </div>
-            <div className="media-actions">
-              <button onClick={handleTakePhoto}><FiCamera/> Adicionar Foto (F-05)</button>
-              <button onClick={handleRecordVideo}><FiVideo/> Adicionar Vídeo (F-10)</button>
-              <button onClick={handleGetSignature}><FiEdit2/> Coletar Assinatura (F-06)</button>
-            </div>
-          </div>
-
-          <div className="info-card timeline-card">
-            <h3>Timeline (F-12)</h3>
-            <ul className="timeline">
-              {mockTimeline.map((item, index) => (
-                <li key={index}>
-                  <span className="time">{item.time}</span>
-                  <span className="event">{item.event}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className="detail-actions">
-         <button className="button-secondary">Baixar Formulário Completo</button>
-         <button className="button-primary">Ver/Editar Formulário Completo</button>
-      </div>
-    </div>
-  );
-}
+// (Opcional) Atualize a interface OccurrenceDetail se precisar adicionar coordenadas
+// em src/types/occurrence.ts
+// export interface OccurrenceDetail {
+//    ...
+//    coordenadas?: { latitude?: number; longitude?: number; precisao?: number; timestamp?: string };
+// }

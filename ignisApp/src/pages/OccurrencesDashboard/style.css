@@ -1,0 +1,189 @@
+/* src/pages/OccurrencesDashboard/style.css */
+.occurrences-dashboard {
+  /* Espaçamento básico para o container da página */
+  padding: 16px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.dashboard-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.new-occurrence-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px; 
+  background-color: #3d1420; /* Roxo escuro */
+  color: #f0f0f0 !important; /* <<< GARANTA COR CLARA e use !important se necessário */
+  text-decoration: none; /* <<< REMOVE SUBLINHADO DE LINK */
+  border: none;
+  border-radius: 8px; 
+  font-size: 1rem;
+  font-weight: 600; 
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s; 
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+}
+
+.new-occurrence-button:hover {
+  background-color: #5a2a3a; /* Roxo um pouco mais claro no hover */
+  transform: translateY(-1px); /* Leve efeito de levantar */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.new-occurrence-button svg { /* Garante que o ícone '+' pegue a cor correta */
+  color: #f0f0f0; 
+}
+
+.occurrences-content {
+  margin-top: 20px;
+}
+
+/* Estilo para as seções (Em Andamento / Finalizadas) */
+.occurrence-section {
+  margin-bottom: 40px;
+}
+
+.occurrence-section h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #343a40;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Estilos da lista (reutilizados de OngoingOccurrences) */
+.occurrences-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.occurrence-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #e9ecef;
+  border-left: 5px solid #ffc107; /* Borda Amarela padrão (Andamento) */
+  border-radius: 8px; /* Ajuste se preferir 12px */
+  padding: 18px 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+}
+
+.occurrence-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  border-color: #adb5bd; /* Borda cinza no hover */
+  border-left-color: #3b1721; /* Borda roxa no hover */
+}
+
+/* Diferenciação para cards finalizados */
+.occurrence-card.finished {
+  border-left-color: #6c757d; /* Borda Cinza para finalizadas */
+  opacity: 0.8; /* Levemente apagado */
+}
+.occurrence-card.finished:hover {
+  border-left-color: #343a40; /* Cinza escuro no hover */
+  opacity: 1;
+}
+
+
+.card-content h3 { /* Usamos h3 aqui em vez de h2 */
+  font-size: 1.15rem; /* Um pouco menor */
+  margin: 8px 0;
+  color: #343a40;
+}
+
+.card-content .address {
+  font-size: 0.95rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.time-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #888;
+  margin-top: 12px;
+}
+
+.card-action {
+  color: #adb5bd;
+}
+.occurrence-card:hover .card-action {
+  color: #3b1721;
+}
+
+/* --- Status Badges (adicionar o 'finalizada') --- */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+.status-badge.status-em-deslocamento { background-color: #fff3cd; color: #856404; }
+.status-badge.status-aguardando-equipe { background-color: #d1ecf1; color: #0c5460; } /* Azul claro */
+.status-badge.status-finalizada { background-color: #e2e3e5; color: #383d41; } /* Cinza */
+/* Adicione outros status conforme necessário */
+
+.no-occurrences {
+  color: #6c757d;
+  font-style: italic;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Adicione ao final de src/pages/OccurrencesDashboard/style.css */
+
+/* Estilos para estado de carregamento */
+.loading-state, .error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  color: #6c757d;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.loading-state .spinner {
+  animation: spin 1.5s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Estilos para estado de erro */
+.error-state {
+  color: #c62828; /* Vermelho */
+}
+.error-state svg {
+  margin-bottom: 15px;
+}
