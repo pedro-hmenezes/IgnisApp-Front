@@ -1,55 +1,63 @@
 // src/api/axiosConfig.ts
 import axios from 'axios';
 
-// Chave do token (deve ser a mesma usada no AuthContext)
-const TOKEN_KEY = 'Teste'; 
+// Chaves do localStorage (DEVEM ser as mesmas do AuthContext)
+const TOKEN_KEY = 'ignis_auth_token'; 
+const PROFILE_KEY = 'ignis_user_profile'; 
 
+// Cria a instância do Axios
 const apiClient = axios.create({
-  baseURL: 'https://ignisappback.onrender.com/', // Mantenha ou ajuste sua baseURL
+  // Usa a variável de ambiente VITE_API_URL ou um fallback com /api
+  baseURL: import.meta.env.VITE_API_URL || 'https://ignisappback.onrender.com/api', // Ajuste '/api' se suas rotas não usam prefixo
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 // === INTERCEPTOR DE REQUISIÇÃO ===
-// Esta função será executada ANTES de cada requisição ser enviada
+// Adiciona o token JWT ao cabeçalho Authorization antes de cada requisição
 apiClient.interceptors.request.use(
   (config) => {
-    // Pega o token do localStorage
     const token = localStorage.getItem(TOKEN_KEY);
-    // Se o token existir, adiciona ao cabeçalho Authorization
-    if (token) {
+    // Adiciona o header apenas se o token existir E o header ainda não estiver definido
+    // (Evita sobrescrever se já foi setado manualmente ou pelo AuthContext no carregamento inicial)
+    if (token && !config.headers.Authorization) { 
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('AxiosInterceptor: Token adicionado ao header:', `Bearer ${token.substring(0, 10)}...`); // Log para debug
-    } else {
-      console.log('AxiosInterceptor: Nenhum token encontrado no localStorage.'); // Log para debug
+      // console.log('AxiosInterceptor: Token adicionado ao header.'); 
+    } else if (!token) {
+      // console.log('AxiosInterceptor: Nenhum token encontrado.');
     }
-    return config; // Retorna a configuração modificada (ou original)
+    return config; 
   },
   (error) => {
-    // Faz algo se ocorrer um erro ao configurar a requisição
-    console.error('AxiosInterceptor Error:', error);
+    console.error('AxiosInterceptor Request Error:', error);
     return Promise.reject(error);
   }
 );
-// ===============================
 
-// Opcional: Adicionar interceptor de RESPOSTA para tratar erros 401 (Token inválido/expirado) globalmente
-// apiClient.interceptors.response.use(
-//   response => response, // Se a resposta for sucesso, apenas repassa
-//   error => {
-//     if (error.response && error.response.status === 401) {
-//       console.log("AxiosInterceptor: Erro 401 detectado. Deslogando...");
-//       // Limpar localStorage e redirecionar para login
-//       localStorage.removeItem(TOKEN_KEY);
-//       localStorage.removeItem(PROFILE_KEY);
-//       // Evitar loop se o erro 401 for na própria tela de login
-//       if (window.location.pathname !== '/login') {
-//         window.location.href = '/login'; // Força reload para limpar estado
-//       }
-//     }
-//     return Promise.reject(error); // Repassa o erro para a chamada original tratar
-//   }
-// );
+// === INTERCEPTOR DE RESPOSTA (Recomendado) ===
+// Trata erros globais, especialmente o 401 (Não Autorizado)
+apiClient.interceptors.response.use(
+  response => response, 
+  error => {
+    if (error.response && error.response.status === 401) {
+      console.warn("AxiosInterceptor: Erro 401 (Não Autorizado) detectado. Deslogando...");
+      
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(PROFILE_KEY);
+      // Remove o header padrão do apiClient para futuras requisições nesta sessão
+      delete apiClient.defaults.headers.common['Authorization']; 
+
+      if (window.location.pathname !== '/login') {
+        alert("Sua sessão expirou ou é inválida. Por favor, faça login novamente."); 
+        // Usar window.location.href força um reload completo, limpando qualquer estado React residual
+        window.location.href = '/login'; 
+      }
+    }
+    // Repassa o erro para a chamada original (no service/componente) tratar
+    return Promise.reject(error); 
+  }
+);
+// ============================================
 
 export default apiClient;

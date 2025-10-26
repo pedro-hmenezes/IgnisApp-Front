@@ -3,11 +3,11 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../api/axiosConfig'; // Import apiClient para o interceptor futuro
+import apiClient from '../api/axiosConfig';
 
-// Tipos (UserProfile, AuthContextType) - Sem mudança
+// Tipos
 type UserProfile = 'op1' | 'op2' | 'chefe' | 'admin' | null;
-export interface AuthContextType { // Exportar para o hook useAuth
+export interface AuthContextType {
   isAuthenticated: boolean;
   userProfile: UserProfile;
   login: (username: string, password: string) => Promise<boolean>;
@@ -15,11 +15,11 @@ export interface AuthContextType { // Exportar para o hook useAuth
   isLoading: boolean;
 }
 
-// Chave para salvar o token no localStorage
+// Chaves consistentes para localStorage
 const TOKEN_KEY = 'ignis_auth_token';
-const PROFILE_KEY = 'ignis_user_profile'; // Salvar perfil também é útil
+const PROFILE_KEY = 'ignis_user_profile';
 
-// Contexto (valor padrão completo para satisfazer o tipo)
+// Contexto
 export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   userProfile: null,
@@ -30,105 +30,83 @@ export const AuthContext = createContext<AuthContextType>({
 
 // Provedor
 interface AuthProviderProps { children: ReactNode; }
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState<UserProfile>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Começa true
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
-  // --- useEffect ATUALIZADO para verificar token no localStorage ---
+  // useEffect para verificar token no localStorage
   useEffect(() => {
     console.log("AuthProvider: Verificando token no localStorage...");
     const storedToken = localStorage.getItem(TOKEN_KEY);
-    const storedProfile = localStorage.getItem(PROFILE_KEY) as UserProfile; // Pega perfil salvo
+    const storedProfile = localStorage.getItem(PROFILE_KEY) as UserProfile;
 
     if (storedToken && storedProfile) {
-      console.log("AuthProvider: Token encontrado. Simulando validação...");
-      // NO FUTURO: Aqui você faria uma chamada API rápida (ex: /api/auth/verify)
-      // para garantir que o token ainda é válido no backend.
-      // Se for válido:
+      console.log("AuthProvider: Token encontrado. Restaurando sessão...");
+      // Define o token no header padrão do Axios para chamadas futuras nesta sessão
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
       setIsAuthenticated(true);
       setUserProfile(storedProfile);
       console.log(`AuthProvider: Sessão restaurada para perfil ${storedProfile}.`);
-      // Configurar Axios para usar o token (ver axiosConfig.ts)
-      try {
-        apiClient.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-      } catch (e) {
-        // Se por algum motivo apiClient não estiver disponível, apenas ignore
-        console.debug('AuthProvider: não foi possível setar header no apiClient', e);
-      }
     } else {
       console.log("AuthProvider: Nenhum token válido encontrado.");
+      // Garante que o header do Axios esteja limpo se não houver token
+      delete apiClient.defaults.headers.common['Authorization'];
     }
-    setIsLoading(false); // Finaliza a verificação inicial
-  }, []); // Roda apenas na montagem inicial
+    setIsLoading(false);
+  }, []);
 
-  // --- Função de Login ATUALIZADA (salva token/perfil) ---
+  // Função de Login (Pronta para API real)
   const login = async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    // REMOVA a simulação daqui quando integrar a API
-    // A chamada API real virá aqui:
-    // try {
-    //   const response = await apiClient.post('/auth/login', { username, password });
-    //   const { token, user } = response.data; // Exemplo de resposta da API
-    //   localStorage.setItem(TOKEN_KEY, token);
-    //   localStorage.setItem(PROFILE_KEY, user.profile); // Salva o perfil
-    //   setIsAuthenticated(true);
-    //   setUserProfile(user.profile);
-    //   console.log(`AuthContext: Login via API bem-sucedido como ${user.profile}`);
-    //   setIsLoading(false);
-    //   return true;
-    // } catch (error) {
-    //   console.error('AuthContext: Falha no login via API', error);
-    //   setIsLoading(false);
-    //   return false;
-    // }
+    console.log('AuthContext: Tentando login via API com:', { username });
+    try {
+      // --- CHAMADA API REAL ---
+      const response = await apiClient.post<{ token: string; user: { profile: UserProfile } }>('/auth/login', { username, password }); // Ajuste a URL e o tipo de resposta esperado
+      
+      const { token, user } = response.data; 
 
-    // --- SIMULAÇÃO (mantida por enquanto) ---
-    console.log('AuthContext: Simulando login com:', { username });
-    await new Promise(resolve => setTimeout(resolve, 500));
-    let loggedIn = false;
-    let profile: UserProfile = null;
-    let mockToken = ''; // Simular um token
+      if (token && user?.profile) {
+        localStorage.setItem(TOKEN_KEY, token);        // Salva token
+        localStorage.setItem(PROFILE_KEY, user.profile); // Salva perfil
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`; // Configura Axios para esta sessão
+        setIsAuthenticated(true);
+        setUserProfile(user.profile);
+        console.log(`AuthContext: Login via API bem-sucedido como ${user.profile}. Token salvo.`);
+        setIsLoading(false);
+        return true; // Sucesso
+      } else {
+         throw new Error("Resposta inválida da API de login (token ou perfil ausente).");
+      }
 
-    if (username === 'admin' && password === 'admin') { loggedIn = true; profile = 'admin'; mockToken = 'fake_admin_token'; }
-    else if (username === 'op1' && password === 'op1') { loggedIn = true; profile = 'op1'; mockToken = 'fake_op1_token'; }
-    else if (username === 'op2' && password === 'op2') { loggedIn = true; profile = 'op2'; mockToken = 'fake_op2_token'; }
-    else if (username === 'chefe' && password === 'chefe') { loggedIn = true; profile = 'chefe'; mockToken = 'fake_chefe_token'; }
-
-    if (loggedIn && profile) {
-      localStorage.setItem(TOKEN_KEY, mockToken); // SALVA O TOKEN SIMULADO
-      localStorage.setItem(PROFILE_KEY, profile); // SALVA O PERFIL SIMULADO
-      setIsAuthenticated(true);
-      setUserProfile(profile);
-      console.log(`AuthContext: Login SIMULADO bem-sucedido como ${profile}. Token salvo.`);
-      setIsLoading(false);
-      return true;
-    } else {
-      localStorage.removeItem(TOKEN_KEY); // Garante que não haja token antigo
+    } catch (error) {
+      console.error('AuthContext: Falha no login via API', error);
+      localStorage.removeItem(TOKEN_KEY); 
       localStorage.removeItem(PROFILE_KEY);
-      console.log('AuthContext: Falha no login SIMULADO');
+      delete apiClient.defaults.headers.common['Authorization']; 
+      setIsAuthenticated(false); 
+      setUserProfile(null);
       setIsLoading(false);
-      return false;
+      return false; // Falha
     }
-    // --- FIM DA SIMULAÇÃO ---
   };
 
-  // --- Função de Logout ATUALIZADA (remove token/perfil) ---
+  // Função de Logout (Pronta)
   const logout = () => {
     setIsAuthenticated(false);
     setUserProfile(null);
-    localStorage.removeItem(TOKEN_KEY);   // REMOVE O TOKEN
-    localStorage.removeItem(PROFILE_KEY); // REMOVE O PERFIL
-    // Opcional: Chamar API /api/auth/logout para invalidar token no backend
+    localStorage.removeItem(TOKEN_KEY);   
+    localStorage.removeItem(PROFILE_KEY); 
+    delete apiClient.defaults.headers.common['Authorization']; // Limpa header do Axios
     console.log('AuthContext: Logout realizado. Token removido.');
     navigate('/login');
   };
 
-  // Valor do contexto (sem mudança)
+  // Valor do contexto
   const value = { isAuthenticated, userProfile, login, logout, isLoading, };
 
-  // Provedor (sem mudança na renderização)
+  // Provedor
   return (
     <AuthContext.Provider value={value}>
       {!isLoading ? children : <div>Carregando autenticação...</div>}
@@ -136,8 +114,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
-// Hook useAuth (mantido aqui conforme sua decisão)
-export const useAuth = (): AuthContextType => { // Adicionado tipo de retorno
+// Hook useAuth (mantido aqui)
+export const useAuth = (): AuthContextType => { 
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');
