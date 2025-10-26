@@ -1,3 +1,4 @@
+// src/App.tsx
 import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { useAuth } from './contexts/AuthContext'; // Verifique se o caminho está correto
@@ -6,48 +7,62 @@ import Login from './pages/Login';
 import RegisterOccurrence from './pages/RegisterOccurrence';
 import BasicForm from './pages/BasicForm';
 import OngoingOccurrenceDetail from './pages/OngoingOccurrenceDetail';
-import OccurrencesDashboard from './pages/OccurrencesDashboard'; // 1. Importe a nova página
-import RegisterUser from './pages/RegisterUser';
+import OccurrencesDashboard from './pages/OccurrencesDashboard';
+import RegisterUser from './pages/RegisterUser'; // Importe a página de cadastro de usuário
 
 import './App.css';
 
-// --- ProtectedRoutesLayout ---
+// Layout para rotas protegidas que requerem autenticação
 const ProtectedRoutesLayout = () => {
-  const { isAuthenticated, isLoading } = useAuth();
-  if (isLoading) { return <div>Verificando autenticação...</div>; }
-  if (!isAuthenticated) { return <Navigate to="/login" replace />; }
-  return ( <MainLayout><Outlet /></MainLayout> );
+ const { isLoading } = useAuth();
+
+ // Mostra tela de carregamento durante a verificação inicial
+ if (isLoading) {
+  return <div>Verificando autenticação...</div>;
+ }
+
+ // TODO: Para habilitar autenticação, descomente o bloco abaixo e adicione isAuthenticated no useAuth
+ // const { isAuthenticated } = useAuth();
+ // if (!isAuthenticated) {
+ //   return <Navigate to="/login" replace />;
+ // }
+
+ // Se autenticado (ou autenticação desativada), renderiza o layout com as rotas // Renderiza o layout com as rotas filhas (agora sempre acessível)
+ return (
+  <MainLayout>
+   <Outlet />
+  </MainLayout>
+ );
 };
-// --- FIM ProtectedRoutesLayout ---
+// --- FIM DA MODIFICAÇÃO ---
 
 function App() {
-  return (
-    <Routes>
-      {/* Rota pública */}
-      <Route path="/login" element={<Login />} />
+ return (
+  <Routes>
+   {/* Rota pública */}
+   <Route path="/login" element={<Login />} />
 
-      {/* Rotas protegidas */}
-      <Route element={<ProtectedRoutesLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/occurrences" element={<OccurrencesDashboard />} /> 
-        <Route path="/register" element={<RegisterOccurrence />} />
-        <Route path="/register/new/:typeId" element={<BasicForm />} />
-        <Route path="/users/new" element={<RegisterUser />} />
+   {/* Rotas "protegidas" (agora acessíveis diretamente) */}
+   <Route element={<ProtectedRoutesLayout />}>
+    <Route path="/" element={<Home />} />
+    <Route path="/occurrences" element={<OccurrencesDashboard />} />
+    <Route path="/register" element={<RegisterOccurrence />} />
+    <Route path="/register/new/:typeId" element={<BasicForm />} />
+    <Route path="/ongoing/:occurrenceId" element={<OngoingOccurrenceDetail />} />
+    <Route path="/users/new" element={<RegisterUser />} />
 
-        {/* Futuramente: Rota para listar usuários /users */}
-        
-        {/* <Route path="/ongoing" element={<OngoingOccurrences />} />  */} {/* <--- 2. REMOVA ESTA ROTA */}
-        
-        {/* A rota de detalhes continua válida, acessada a partir do Dashboard */}
-        <Route path="/ongoing/:occurrenceId" element={<OngoingOccurrenceDetail />} /> 
+    {/* Adicione outras rotas que estavam protegidas aqui */}
+    {/* Ex: <Route path="/reports" element={<ReportsPage />} /> */}
+    {/* Ex: <Route path="/map" element={<MapPage />} /> */}
+    {/* Ex: <Route path="/dashboard" element={<DashboardPage />} /> */}
+    {/* Ex: <Route path="/settings" element={<SettingsPage />} /> */}
 
-        {/* ... (outras rotas) ... */}
-      </Route>
+   </Route>
 
-      {/* Rota Padrão */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
+   {/* Rota Padrão: Redireciona para home se nenhuma outra rota combinar */}
+   <Route path="*" element={<Navigate to="/" replace />} />
+  </Routes>
+ );
 }
 
 export default App;
