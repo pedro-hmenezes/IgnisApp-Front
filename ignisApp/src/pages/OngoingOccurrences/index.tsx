@@ -1,5 +1,3 @@
-// src/pages/OngoingOccurrences/index.tsx
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiChevronRight, FiClock } from 'react-icons/fi';
 import './style.css';
