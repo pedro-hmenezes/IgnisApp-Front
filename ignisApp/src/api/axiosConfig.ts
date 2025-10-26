@@ -2,10 +2,10 @@
 import axios from 'axios';
 
 // Chave do token (deve ser a mesma usada no AuthContext)
-const TOKEN_KEY = 'ignis_auth_token'; 
+const TOKEN_KEY = 'Teste'; 
 
 const apiClient = axios.create({
-  baseURL: '/api', // Mantenha ou ajuste sua baseURL
+  baseURL: 'https://ignisappback.onrender.com/', // Mantenha ou ajuste sua baseURL
   headers: {
     'Content-Type': 'application/json',
   },
