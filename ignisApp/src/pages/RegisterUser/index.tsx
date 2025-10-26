@@ -1,6 +1,7 @@
 // src/pages/RegisterUser/index.tsx
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
+import type { ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiUserPlus, FiLoader } from 'react-icons/fi';
 import { createUser } from '../../api/userService'; // 1. Importar a função do serviço
 import './style.css'; 
@@ -15,13 +16,19 @@ type UserFormErrors = { [K in keyof UserFormData]?: string; };
 export default function RegisterUser() {
   const navigate = useNavigate();
   // Estados (formData, errors, isSubmitting, apiError) - Sem mudança
-  const [formData, setFormData] = useState<UserFormData>({ /* ... */ });
+  const [formData, setFormData] = useState<UserFormData>({ name: '', email: '', role: 'operador', password: '', confirmPassword: '' });
   const [errors, setErrors] = useState<UserFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
   // Handler handleChange - Sem mudança
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { /* ... */ };
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target as HTMLInputElement | HTMLSelectElement;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name as keyof UserFormErrors]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
 
   // --- Validação Front-end Simples ---
   const validateForm = (): boolean => {
@@ -64,12 +71,15 @@ export default function RegisterUser() {
         // Decide para onde navegar após sucesso
         // Ex: Voltar para home, ir para lista de usuários, etc.
         navigate('/'); // Exemplo: volta para home
-    } catch (error: any) { // Tipar erro como 'any' ou 'unknown'
-        console.error("Erro ao cadastrar usuário:", error);
-        // Tenta pegar mensagem de erro da API, se existir
-        const message = error?.response?.data?.message || error.message || 'Falha ao cadastrar usuário. Tente novamente.';
-        setApiError(message);
-        alert(`Erro: ${message}`); // Mostra erro para o usuário
+  } catch (error: unknown) {
+    console.error("Erro ao cadastrar usuário:", error);
+    let message = 'Falha ao cadastrar usuário. Tente novamente.';
+        if (typeof error === 'object' && error !== null) {
+          const errObj = error as { response?: { data?: { message?: string } }; message?: string };
+          message = errObj?.response?.data?.message ?? errObj?.message ?? message;
+        }
+    setApiError(message);
+    alert(`Erro: ${message}`);
     } finally {
         setIsSubmitting(false); // Finaliza loading
     }

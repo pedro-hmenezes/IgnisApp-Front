@@ -1,5 +1,4 @@
 // src/api/userService.ts
-import apiClient from './axiosConfig';
 // (Opcional) Importar tipos de usuário se definidos globalmente
 // import type { IUser } from '../types/user'; 
 
@@ -30,11 +29,11 @@ export const createUser = async (userData: UserCreatePayload): Promise<UserCreat
   try {
     console.log("Chamando API para criar usuário:", { ...userData, password: '***' }); // Log sem a senha
 
-    // === CHAMADA REAL (Descomentar depois) ===
-    // const response = await apiClient.post<UserCreatedResponse>('/users', userData); // Ajuste o endpoint '/users' se necessário
-    // console.log("Resposta da API (Create User):", response.data);
-    // return response.data;
-    // =======================================
+  // === CHAMADA REAL (Descomentar depois) ===
+  // Se quiser usar a chamada real, descomente a linha abaixo e importe `apiClient` no topo do arquivo:
+  // const response = await apiClient.post<UserCreatedResponse>('/users', userData); // Ajuste o endpoint '/users' se necessário
+  // return response.data;
+  // =======================================
 
     // === SIMULAÇÃO ===
     await new Promise(resolve => setTimeout(resolve, 700)); // Simula delay
