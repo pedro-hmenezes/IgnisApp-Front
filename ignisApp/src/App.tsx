@@ -7,6 +7,7 @@ import RegisterOccurrence from './pages/RegisterOccurrence';
 import BasicForm from './pages/BasicForm';
 import OngoingOccurrenceDetail from './pages/OngoingOccurrenceDetail';
 import OccurrencesDashboard from './pages/OccurrencesDashboard'; // 1. Importe a nova página
+import RegisterUser from './pages/RegisterUser';
 
 import './App.css';
 
@@ -31,6 +32,9 @@ function App() {
         <Route path="/occurrences" element={<OccurrencesDashboard />} /> 
         <Route path="/register" element={<RegisterOccurrence />} />
         <Route path="/register/new/:typeId" element={<BasicForm />} />
+        <Route path="/users/new" element={<RegisterUser />} />
+
+        {/* Futuramente: Rota para listar usuários /users */}
         
         {/* <Route path="/ongoing" element={<OngoingOccurrences />} />  */} {/* <--- 2. REMOVA ESTA ROTA */}
         
