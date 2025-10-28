@@ -1,16 +1,24 @@
-// src/pages/BasicForm/index.tsx
 import { useNavigate } from 'react-router-dom';
-import { useBasicForm } from '../../hooks/BasicForm/useBasicForm'; // Verifique o caminho
+import { useBasicForm } from '../../hooks/BasicForm/useBasicForm';
 import './style.css'; 
 
+// Opções para o select de Tipo de Ocorrência
+const occurrenceTypeOptions = [
+  { value: '', label: 'Selecione...' }, // Opção inicial
+  { value: 'basic', label: 'Ocorrência Básica' },
+  { value: 'pre-hospitalar', label: 'Atendimento Pré Hospitalar' },
+  { value: 'incendio', label: 'Atendimento de Incêndio' },
+  { value: 'salvamento', label: 'Atendimento de Salvamento' },
+  { value: 'produtos-perigosos', label: 'Atendimento de Produtos Perigosos' },
+  // Adicione outros tipos se necessário
+];
+
 export default function BasicForm() {
-  // Pega TUDO do hook
   const {
     formData, errors, noAddressNumber, setNoAddressNumber,
     handleChange, handleSingleChoiceChange, handleSubmit,
     isSubmitting 
   } = useBasicForm();
-
   const navigate = useNavigate(); 
 
   return (
@@ -26,147 +34,174 @@ export default function BasicForm() {
           <div className="flex-container">
             {/* Input Nº do Aviso */}
             <div className="flex-item quarter-width">
-              <label htmlFor="numAviso">Nº do aviso: (NETDISPATCHER)</label>
+              <label htmlFor="numAviso">Nº do aviso:</label>
               <input type="text" id="numAviso" name="numAviso" value={formData.numAviso} onChange={handleChange} placeholder="Ex: 2025001234"
-                     className={errors.numAviso ? 'input-error' : ''}
-                     disabled={isSubmitting} />
+                     className={errors.numAviso ? 'input-error' : ''} disabled={isSubmitting} />
               {errors.numAviso && <span className="error-message">{errors.numAviso}</span>}
             </div>
-            {/* Input Data */}
+             {/* Input Data */}
             <div className="flex-item quarter-width">
               <label htmlFor="dataRecebimento">Data:</label>
-              <input type="date" id="dataRecebimento" name="dataRecebimento" value={formData.dataRecebimento} onChange={handleChange} readOnly />
+              <input type="date" id="dataRecebimento" name="dataRecebimento" value={formData.dataRecebimento} onChange={handleChange} readOnly disabled={isSubmitting}/>
             </div>
-            {/* Input Hora */}
+             {/* Input Hora */}
             <div className="flex-item quarter-width">
               <label htmlFor="horaRecebimento"> Hora de recebimento:</label>
-              <input type="time" id="horaRecebimento" name="horaRecebimento" value={formData.horaRecebimento} onChange={handleChange} readOnly />
+              <input type="time" id="horaRecebimento" name="horaRecebimento" value={formData.horaRecebimento} onChange={handleChange} readOnly disabled={isSubmitting}/>
             </div>
+            
+            {/* === NOVO CAMPO TIPO DE OCORRÊNCIA === */}
+            <div className="flex-item quarter-width">
+              <label htmlFor="tipoOcorrencia">Tipo de Ocorrência</label>
+              <select id="tipoOcorrencia" name="tipoOcorrencia" value={formData.tipoOcorrencia} onChange={handleChange} 
+                      className={errors.tipoOcorrencia ? 'input-error' : ''} disabled={isSubmitting}>
+                 {occurrenceTypeOptions.map(option => (
+                   <option key={option.value} value={option.value}>{option.label}</option>
+                 ))}
+              </select>
+              {errors.tipoOcorrencia && <span className="error-message">{errors.tipoOcorrencia}</span>}
+            </div>
+            {/* ==================================== */}
           </div>
         </fieldset>
 
         {/* --- Fieldsets Acionamento e Situação --- */}
         <div className="flex-container">
-          <fieldset className={`half-width ${errors.formaAcionamento ? 'fieldset-error' : ''}`}>
-             <legend>Forma de Acionamento</legend>
-             <div className="checkbox-group flex-container">
-                <label><input type="checkbox" checked={formData.formaAcionamento.co_grupamento} onChange={() => handleSingleChoiceChange('formaAcionamento', 'co_grupamento')} disabled={isSubmitting} /> CO do Grupamento</label>
-                <label><input type="checkbox" checked={formData.formaAcionamento.ciods} onChange={() => handleSingleChoiceChange('formaAcionamento', 'ciods')} disabled={isSubmitting} /> CIODS</label>
-                <label><input type="checkbox" checked={formData.formaAcionamento.pessoalmente} onChange={() => handleSingleChoiceChange('formaAcionamento', 'pessoalmente')} disabled={isSubmitting} /> Pessoalmente</label>
-                <label><input type="checkbox" checked={formData.formaAcionamento['193']} onChange={() => handleSingleChoiceChange('formaAcionamento', '193')} disabled={isSubmitting} /> 193</label>
-                <label><input type="checkbox" checked={formData.formaAcionamento['24h']} onChange={() => handleSingleChoiceChange('formaAcionamento', '24h')} disabled={isSubmitting} /> 24h</label>
-                <label><input type="checkbox" checked={formData.formaAcionamento.outros} onChange={() => handleSingleChoiceChange('formaAcionamento', 'outros')} disabled={isSubmitting} /> Outros</label>
-             </div>
-             {errors.formaAcionamento && <span className="error-message">{errors.formaAcionamento}</span>}
+          <fieldset className="flex-item half-width">
+            <legend>Forma de Acionamento</legend>
+            <div className="checkbox-group">
+              {Object.keys(formData.formaAcionamento).map(key => (
+                <label key={key}>
+                  <input 
+                    type="radio" 
+                    name="formaAcionamento"
+                    checked={formData.formaAcionamento[key]} 
+                    onChange={() => handleSingleChoiceChange('formaAcionamento', key)}
+                    disabled={isSubmitting}
+                  />
+                  {key === 'telefone' && 'Telefone'}
+                  {key === 'radioAmador' && 'Rádio Amador'}
+                  {key === 'pessoalmente' && 'Pessoalmente'}
+                  {key === 'outros' && 'Outros'}
+                </label>
+              ))}
+            </div>
+            {errors.formaAcionamento && <span className="error-message">{errors.formaAcionamento}</span>}
           </fieldset>
-          
-          <fieldset className={`half-width ${errors.situacaoOcorrencia ? 'fieldset-error' : ''}`}>
-             <legend>Situação da ocorrência</legend>
-             <div className="checkbox-group flex-container">
-                <label><input type="checkbox" checked={formData.situacaoOcorrencia.recebida} onChange={() => handleSingleChoiceChange('situacaoOcorrencia', 'recebida')} disabled={isSubmitting} /> <b>Recebida</b></label>
-                <label><input type="checkbox" checked={formData.situacaoOcorrencia.nao_atendida_trote} onChange={() => handleSingleChoiceChange('situacaoOcorrencia', 'nao_atendida_trote')} disabled={isSubmitting} /> Não atendida: Trote</label>
-                <label><input type="checkbox" checked={formData.situacaoOcorrencia.cancelada} onChange={() => handleSingleChoiceChange('situacaoOcorrencia', 'cancelada')} disabled={isSubmitting} /> Cancelada</label>
-                <label><input type="checkbox" checked={formData.situacaoOcorrencia.sem_atuacao} onChange={() => handleSingleChoiceChange('situacaoOcorrencia', 'sem_atuacao')} disabled={isSubmitting} /> Sem atuação</label>
-                <label><input type="checkbox" checked={formData.situacaoOcorrencia.atendida} onChange={() => handleSingleChoiceChange('situacaoOcorrencia', 'atendida')} disabled={isSubmitting} /> Atendida</label>
-             </div>
-             {errors.situacaoOcorrencia && <span className="error-message">{errors.situacaoOcorrencia}</span>}
+
+          <fieldset className="flex-item half-width">
+            <legend>Situação da Ocorrência</legend>
+            <div className="checkbox-group">
+              {Object.keys(formData.situacaoOcorrencia).map(key => (
+                <label key={key}>
+                  <input 
+                    type="radio" 
+                    name="situacaoOcorrencia"
+                    checked={formData.situacaoOcorrencia[key]} 
+                    onChange={() => handleSingleChoiceChange('situacaoOcorrencia', key)}
+                    disabled={isSubmitting}
+                  />
+                  {key === 'recebida' && 'Recebida'}
+                  {key === 'despachada' && 'Despachada'}
+                  {key === 'emAtendimento' && 'Em Atendimento'}
+                  {key === 'finalizada' && 'Finalizada'}
+                </label>
+              ))}
+            </div>
+            {errors.situacaoOcorrencia && <span className="error-message">{errors.situacaoOcorrencia}</span>}
           </fieldset>
         </div>
 
         {/* --- Fieldset Evento --- */}
         <fieldset>
           <legend>Evento</legend>
-          <div className="flex-item">
-            <label htmlFor="naturezaInicial">Natureza Inicial do Aviso:</label>
-            <input type="text" id="naturezaInicial" name="naturezaInicial" value={formData.naturezaInicial} onChange={handleChange}
-                   className={`full-width ${errors.naturezaInicial ? 'input-error' : ''}`} placeholder="Ex: Incêndio em residência, atropelamento..."
-                   disabled={isSubmitting} />
-            {errors.naturezaInicial && <span className="error-message">{errors.naturezaInicial}</span>}
+          <div className="flex-container">
+            <div className="flex-item full-width">
+              <label htmlFor="naturezaInicial">Natureza Inicial:</label>
+              <textarea 
+                id="naturezaInicial" 
+                name="naturezaInicial" 
+                value={formData.naturezaInicial} 
+                onChange={handleChange}
+                placeholder="Descreva a natureza da ocorrência..."
+                rows={3}
+                className={errors.naturezaInicial ? 'input-error' : ''}
+                disabled={isSubmitting}
+              />
+              {errors.naturezaInicial && <span className="error-message">{errors.naturezaInicial}</span>}
+            </div>
           </div>
         </fieldset>
 
         {/* --- Fieldset Endereço --- */}
-        <fieldset>
+<fieldset>
            <legend>Endereço</legend>
-           {/* Linha Rua e Número */}
-           <div className="flex-container" style={{ alignItems: 'flex-end' }}>
-              <div className="flex-item" style={{ flex: 3 }}>
-                 <label htmlFor="endRua">Rua Avenida:</label>
-                 <input type="text" id="endRua" name="endRua" value={formData.endRua} onChange={handleChange} placeholder="Ex: Av. Boa Viagem" 
-                        className={errors.endRua ? 'input-error' : ''}
-                        disabled={isSubmitting} />
+           {/* Usaremos uma classe grid específica */}
+           <div className="address-grid"> 
+              {/* Linha 1 */}
+              <div className="grid-item span-2"> {/* Ocupa 2 colunas */}
+                 <label htmlFor="endRua">Rua:</label>
+                 <input type="text" id="endRua" name="endRua" value={formData.endRua} onChange={handleChange} placeholder="Nome da rua" 
+                        className={errors.endRua ? 'input-error' : ''} disabled={isSubmitting} />
                  {errors.endRua && <span className="error-message">{errors.endRua}</span>}
               </div>
-              <div className="flex-item" style={{ flex: 1 }}>
-                 <label htmlFor="endNumero">Nº</label>
-                 <input type="text" id="endNumero" name="endNumero" value={formData.endNumero} onChange={handleChange} placeholder="Ex: 123" 
+              <div className="grid-item">
+                 <label htmlFor="endNumero">Número:</label>
+                 <input type="text" id="endNumero" name="endNumero" value={formData.endNumero} onChange={handleChange} placeholder="Número" 
                         className={errors.endNumero ? 'input-error' : ''}
-                        disabled={noAddressNumber || isSubmitting} 
-                        readOnly={noAddressNumber} />
-                 {/* Mensagem de erro do número é exibida abaixo da checkbox S/N */}
+                        disabled={noAddressNumber || isSubmitting} readOnly={noAddressNumber} />
+                 {/* Checkbox S/N vem logo abaixo */}
+                 <div className="flex-item-row" style={{ marginTop: '8px', marginBottom: '8px' }}> 
+                    <label style={{ marginBottom: 0 }}> {/* Remove margem extra */}
+                       <input type="checkbox" checked={noAddressNumber} onChange={(e) => setNoAddressNumber(e.target.checked)} disabled={isSubmitting} />
+                       Sem Nº
+                    </label>
+                 </div>
+                 {errors.endNumero && <span className="error-message">{errors.endNumero}</span>}
               </div>
-           </div>
-           
-           {/* Checkbox Sem Número */}
-           <div className="flex-item-row" style={{ marginTop: '10px' }}>
-              <label>
-                 <input type="checkbox" checked={noAddressNumber} onChange={(e) => setNoAddressNumber(e.target.checked)} disabled={isSubmitting} />
-                 Sem número (S/N)
-              </label>
-           </div>
-           {errors.endNumero && <span className="error-message">{errors.endNumero}</span>}
-
-           {/* Linha Bairro e Município */}
-           <div className="flex-container" style={{ marginTop: 10 }}>
-              <div className="flex-item third-width">
+              <div className="grid-item">
                  <label htmlFor="endBairro">Bairro:</label>
-                 <input type="text" id="endBairro" name="endBairro" value={formData.endBairro} onChange={handleChange} placeholder="Ex: Boa Viagem" 
-                        className={errors.endBairro ? 'input-error' : ''}
-                        disabled={isSubmitting} />
+                 <input type="text" id="endBairro" name="endBairro" value={formData.endBairro} onChange={handleChange} placeholder="Bairro" 
+                        className={errors.endBairro ? 'input-error' : ''} disabled={isSubmitting} />
                  {errors.endBairro && <span className="error-message">{errors.endBairro}</span>}
               </div>
-              <div className="flex-item third-width">
-                 <label htmlFor="endMunicipio">Municipio</label>
-                 <input type="text" id="endMunicipio" name="endMunicipio" value={formData.endMunicipio} onChange={handleChange} placeholder="Ex: Recife" 
-                        className={errors.endMunicipio ? 'input-error' : ''}
-                        disabled={isSubmitting} />
+
+              {/* Linha 2 */}
+              <div className="grid-item">
+                 <label htmlFor="endMunicipio">Município:</label>
+                 <input type="text" id="endMunicipio" name="endMunicipio" value={formData.endMunicipio} onChange={handleChange} placeholder="Município" 
+                        className={errors.endMunicipio ? 'input-error' : ''} disabled={isSubmitting} />
                  {errors.endMunicipio && <span className="error-message">{errors.endMunicipio}</span>}
               </div>
-           </div>
-
-           {/* Linha Referência */}
-           <div className="flex-container" style={{ marginTop: 10 }}>
-              <div className="flex-item half-width">
-                 <label htmlFor="endReferencia">Referência:</label>
-                 <input type="text" id="endReferencia" name="endReferencia" value={formData.endReferencia} onChange={handleChange} placeholder="Ex: Próximo à padaria, esquina com..." 
+              <div className="grid-item span-3"> {/* Ocupa 3 colunas */}
+                 <label htmlFor="endReferencia">Ponto de Referência:</label>
+                 <input type="text" id="endReferencia" name="endReferencia" value={formData.endReferencia} onChange={handleChange} placeholder="Ponto de referência (opcional)" 
                         disabled={isSubmitting} />
               </div>
            </div>
         </fieldset>
 
-        {/* --- Fieldset Solicitante --- */}
+        {/* --- Fieldset Solicitante (REESTRUTURADO) --- */}
         <fieldset>
            <legend>Solicitante</legend>
-           <div className="flex-container">
-               <div className="flex-item" style={{ flex: 2 }}>
-                  <label htmlFor="solNome">Nome</label>
-                  <input type="text" id="solNome" name="solNome" value={formData.solNome} onChange={handleChange} placeholder="Ex: Maria da Silva" 
-                         className={errors.solNome ? 'input-error' : ''}
-                         disabled={isSubmitting} />
+           {/* Usaremos outra classe grid específica */}
+           <div className="requester-grid"> 
+               <div className="grid-item span-2"> {/* Nome ocupa mais espaço */}
+                  <label htmlFor="solNome">Nome:</label>
+                  <input type="text" id="solNome" name="solNome" value={formData.solNome} onChange={handleChange} placeholder="Nome completo" 
+                         className={errors.solNome ? 'input-error' : ''} disabled={isSubmitting} />
                   {errors.solNome && <span className="error-message">{errors.solNome}</span>}
                </div>
-               <div className="flex-item" style={{ flex: 1 }}>
-                  <label htmlFor="solFone">Fone</label>
-                  <input type="text" id="solFone" name="solFone" value={formData.solFone} onChange={handleChange} placeholder="Ex: (81) 99999-1234" 
-                         className={errors.solFone ? 'input-error' : ''}
-                         disabled={isSubmitting} />
+               <div className="grid-item">
+                  <label htmlFor="solFone">Telefone:</label>
+                  <input type="text" id="solFone" name="solFone" value={formData.solFone} onChange={handleChange} placeholder="(00) 00000-0000" 
+                         className={errors.solFone ? 'input-error' : ''} disabled={isSubmitting} />
                   {errors.solFone && <span className="error-message">{errors.solFone}</span>}
                </div>
-               <div className="flex-item" style={{ flex: 1 }}>
-                  <label htmlFor="solRelacao">Relação</label>
-                  <input type="text" id="solRelacao" name="solRelacao" value={formData.solRelacao} onChange={handleChange} placeholder="Ex: Vítima ou Testemunha" 
-                         className={errors.solRelacao ? 'input-error' : ''}
-                         disabled={isSubmitting} />
+               <div className="grid-item">
+                  <label htmlFor="solRelacao">Relação:</label>
+                  <input type="text" id="solRelacao" name="solRelacao" value={formData.solRelacao} onChange={handleChange} placeholder="Ex: Proprietário" 
+                         className={errors.solRelacao ? 'input-error' : ''} disabled={isSubmitting} />
                   {errors.solRelacao && <span className="error-message">{errors.solRelacao}</span>}
                </div>
            </div>
@@ -174,7 +209,8 @@ export default function BasicForm() {
 
         {/* --- Botões de Ação --- */}
         <div className="form-actions">
-          <button type="button" onClick={() => navigate('/register')} className="button-secondary" disabled={isSubmitting}> Cancelar </button>
+          {/* Botão Cancelar agora volta para o Dashboard de Ocorrências */}
+          <button type="button" onClick={() => navigate('/occurrences')} className="button-secondary" disabled={isSubmitting}> Cancelar </button> 
           <button type="submit" className="button-primary" disabled={isSubmitting}> {isSubmitting ? 'Salvando...' : 'Salvar e Enviar para Equipe'} </button>
         </div>
       </form>

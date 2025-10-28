@@ -1,191 +1,248 @@
-// src/hooks/BasicForm/useBasicForm.ts
 import { useState, useEffect } from 'react';
-// 1. Importar tipos explicitamente
 import type { ChangeEvent, FormEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Removido useParams
 import { createOccurrence } from '../../api/occurrenceService';
+// Importar tipos da API (ajuste o caminho se necessário)
+import type { OccurrenceCreatePayload } from '../../types/occurrence';
 
-// Tipos (CheckboxGroup, FormData, FormErrors) - Sem mudança
+// Tipos locais
 type Checkgroup = { [key: string]: boolean };
+// 1. Adicionar tipoOcorrencia à FormData
 type FormData = {
   numAviso: string; dataRecebimento: string; horaRecebimento: string;
+  tipoOcorrencia: string; // <<< NOVO CAMPO
   naturezaInicial: string; formaAcionamento: Checkgroup; situacaoOcorrencia: Checkgroup;
   solNome: string; solFone: string; solRelacao: string;
   endRua: string; endNumero: string; endBairro: string; endMunicipio: string; endReferencia: string;
 };
 type FormErrors = { [K in keyof FormData]?: string; };
 
-// Função Helper - formata telefone removendo caracteres não numéricos e aplicando máscara simples
+// Função Helper - formatPhone
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, '');
-  if (!digits) return '';
-  // Formatos comuns: (DD) 9XXXX-XXXX ou (DD) XXXX-XXXX
-  const ddd = digits.slice(0, 2);
-  const rest = digits.slice(2);
-  if (rest.length <= 4) return `(${ddd}) ${rest}`;
-  if (rest.length <= 8) return `(${ddd}) ${rest.slice(0, rest.length - 4)}-${rest.slice(-4)}`;
-  // celular com 9 dígitos
-  return `(${ddd}) ${rest.slice(0, rest.length - 4)}-${rest.slice(-4)}`;
+  if (digits.length <= 10) {
+    return digits.replace(/(\d{2})(\d{4})(\d{0,4})/, (_, ddd, p1, p2) => 
+      p2 ? `(${ddd}) ${p1}-${p2}` : p1 ? `(${ddd}) ${p1}` : ddd ? `(${ddd}` : ''
+    );
+  }
+  return digits.replace(/(\d{2})(\d{5})(\d{0,4})/, (_, ddd, p1, p2) => 
+    p2 ? `(${ddd}) ${p1}-${p2}` : `(${ddd}) ${p1}`
+  );
 };
 
 // Hook Customizado
 export function useBasicForm() {
   const navigate = useNavigate();
-  const { typeId } = useParams<{ typeId: string }>(); 
+  // Removido useParams - o tipo virá do formulário
 
-  // Estados - Sem mudança na inicialização, o erro ts(2345) pode ser um falso positivo se a estrutura estiver correta.
   const [formData, setFormData] = useState<FormData>({ 
-    numAviso: '', dataRecebimento: '', horaRecebimento: '', naturezaInicial: '', 
-    formaAcionamento: { co_grupamento: false, ciods: false, pessoalmente: false, '193': false, '24h': false, outros: false, }, 
-    situacaoOcorrencia: { recebida: true, nao_atendida_trote: false, cancelada: false, sem_atuacao: false, atendida: false, }, 
-    solNome: '', solFone: '', solRelacao: '', endRua: '', endNumero: '', endBairro: '', endMunicipio: '', endReferencia: '', 
+    numAviso: '', 
+    dataRecebimento: '', 
+    horaRecebimento: '', 
+    tipoOcorrencia: '',
+    naturezaInicial: '', 
+    formaAcionamento: { 
+      telefone: false, 
+      radioAmador: false, 
+      pessoalmente: false, 
+      outros: false 
+    }, 
+    situacaoOcorrencia: { 
+      recebida: true, 
+      despachada: false, 
+      emAtendimento: false, 
+      finalizada: false 
+    }, 
+    solNome: '', 
+    solFone: '', 
+    solRelacao: '', 
+    endRua: '', 
+    endNumero: '', 
+    endBairro: '', 
+    endMunicipio: '', 
+    endReferencia: '', 
    });
   const [errors, setErrors] = useState<FormErrors>({});
   const [noAddressNumber, setNoAddressNumber] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // useEffects - Sem mudança
+  // useEffect para preencher data e hora automaticamente
   useEffect(() => {
-    // Preenche dataRecebimento e horaRecebimento com o momento atual na montagem do componente
     const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const dateStr = `${yyyy}-${mm}-${dd}`; // formato ISO date para inputs type=date
-    const timeStr = `${hours}:${minutes}`;
-    setFormData(prev => ({ ...prev, dataRecebimento: dateStr, horaRecebimento: timeStr }));
+    const date = now.toISOString().split('T')[0];
+    const time = now.toTimeString().split(' ')[0].substring(0, 5);
+    setFormData(prev => ({ 
+      ...prev, 
+      dataRecebimento: date, 
+      horaRecebimento: time 
+    }));
   }, []);
-
+  
+  // useEffect para lidar com checkbox "S/N" no número do endereço
   useEffect(() => {
-    // Quando marcar S/N, coloca 'S/N' em endNumero; quando desmarcar, limpa se ainda for 'S/N'
     if (noAddressNumber) {
       setFormData(prev => ({ ...prev, endNumero: 'S/N' }));
-    } else {
-      setFormData(prev => ({ ...prev, endNumero: prev.endNumero === 'S/N' ? '' : prev.endNumero }));
+    } else if (formData.endNumero === 'S/N') {
+      setFormData(prev => ({ ...prev, endNumero: '' }));
     }
-  }, [noAddressNumber]);
+  }, [noAddressNumber, formData.endNumero]);
 
-  // Handlers - Adicionado tipo de retorno : void
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => { // <--- CORREÇÃO 2 e 5 (Return Type)
-    const { name, value } = e.target; // 'value' É usado nas linhas seguintes
+  // Handlers (handleChange com máscara, handleSingleChoiceChange - sem mudança)
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => { // Adicionado HTMLSelectElement
+    const { name, value } = e.target;
     let finalValue = value;
     if (name === 'solFone') { finalValue = formatPhone(value); } 
     setFormData(prev => ({ ...prev, [name]: finalValue }));
     if (errors[name as keyof FormErrors]) { setErrors(prev => ({ ...prev, [name]: undefined })); }
   };
-  
-  const handleSingleChoiceChange = ( groupName: 'formaAcionamento' | 'situacaoOcorrencia', key: string ): void => { // <--- CORREÇÃO 4 e 5 (Return Type)
-    // groupName e key SÃO usados aqui
-    setFormData(prev => {
-      const newGroupState = { ...prev[groupName] };
-      Object.keys(newGroupState).forEach(k => { newGroupState[k] = false; });
-      newGroupState[key] = true;
-      return { ...prev, [groupName]: newGroupState };
-    });
-    if (errors[groupName]) { setErrors(prev => ({ ...prev, [groupName]: undefined })); }
+  const handleSingleChoiceChange = ( 
+    groupName: 'formaAcionamento' | 'situacaoOcorrencia', 
+    key: string 
+  ): void => {
+    setFormData(prev => ({
+      ...prev,
+      [groupName]: Object.keys(prev[groupName]).reduce((acc, k) => {
+        acc[k] = k === key;
+        return acc;
+      }, {} as Checkgroup)
+    }));
   };
 
   // Função de Validação
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-
-    // Exemplo de validações básicas
-    if (!formData.numAviso || formData.numAviso.trim() === '') {
+    
+    if (!formData.numAviso?.trim()) {
       newErrors.numAviso = 'Número do aviso é obrigatório.';
     }
-
-    if (!formData.naturezaInicial || formData.naturezaInicial.trim() === '') {
+    
+    if (!formData.tipoOcorrencia) {
+      newErrors.tipoOcorrencia = 'Tipo de ocorrência é obrigatório.';
+    }
+    
+    if (!formData.naturezaInicial?.trim()) {
       newErrors.naturezaInicial = 'Natureza inicial é obrigatória.';
     }
-
-    if (!Object.values(formData.formaAcionamento).some(val => val)) {
+    
+    const hasFormaAcionamento = Object.values(formData.formaAcionamento).some(v => v);
+    if (!hasFormaAcionamento) {
       newErrors.formaAcionamento = 'Selecione uma forma de acionamento.';
     }
-
-    if (!Object.values(formData.situacaoOcorrencia).some(val => val)) {
+    
+    const hasSituacao = Object.values(formData.situacaoOcorrencia).some(v => v);
+    if (!hasSituacao) {
       newErrors.situacaoOcorrencia = 'Selecione uma situação.';
     }
-
-    if (!formData.solNome || formData.solNome.trim() === '') {
+    
+    if (!formData.solNome?.trim()) {
       newErrors.solNome = 'Nome do solicitante é obrigatório.';
     }
-
+    
     const digitsInPhone = formData.solFone.replace(/\D/g, '');
-    if (!digitsInPhone || digitsInPhone.length < 8) {
-      newErrors.solFone = 'Telefone inválido ou incompleto.';
+    if (!digitsInPhone || digitsInPhone.length < 10) {
+      newErrors.solFone = 'Telefone inválido ou incompleto (mín. 10 dígitos).';
     }
-
-    if (!formData.endRua || formData.endRua.trim() === '') {
+    
+    if (!formData.endRua?.trim()) {
       newErrors.endRua = 'Rua é obrigatória.';
     }
-
-    if (!formData.endMunicipio || formData.endMunicipio.trim() === '') {
+    
+    if (!formData.endBairro?.trim()) {
+      newErrors.endBairro = 'Bairro é obrigatório.';
+    }
+    
+    if (!formData.endMunicipio?.trim()) {
       newErrors.endMunicipio = 'Município é obrigatório.';
     }
-
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Função handleSubmit - Adicionado tipo de retorno : Promise<void>
-  const handleSubmit = async (e: FormEvent): Promise<void> => { // <--- Boa prática adicionar tipo de retorno async
+  // Função handleSubmit (AJUSTADA PARA FORMATAR PAYLOAD)
+  const handleSubmit = async (e: FormEvent): Promise<void> => { 
     e.preventDefault();
-    const isValid = validateForm();
-
-    if (isValid) {
-      setIsSubmitting(true);
-        // Monta o payload conforme OccurrenceCreatePayload definido em occurrenceService
-        const pickSelected = (group: { [k: string]: boolean }): string => {
-          const found = Object.entries(group).find(([, v]) => v);
-          return found ? found[0] : '';
-        };
-
-        // Combina data + hora em um timestamp ISO
-        let timestampRecebimento = '';
-        try {
-          if (formData.dataRecebimento) {
-            const timePart = formData.horaRecebimento ? `${formData.horaRecebimento}:00` : '00:00:00';
-            const iso = new Date(`${formData.dataRecebimento}T${timePart}`);
-            timestampRecebimento = iso.toISOString();
-          }
-        } catch {
-          timestampRecebimento = new Date().toISOString();
-        }
-
-        const payload = {
-          numAviso: formData.numAviso,
-          tipoOcorrencia: typeId ?? '',
-          timestampRecebimento,
-          formaAcionamento: pickSelected(formData.formaAcionamento),
-          situacaoOcorrencia: pickSelected(formData.situacaoOcorrencia),
-          naturezaInicial: formData.naturezaInicial,
-          endereco: { rua: formData.endRua, numero: formData.endNumero, bairro: formData.endBairro, municipio: formData.endMunicipio, referencia: formData.endReferencia },
-          solicitante: { nome: formData.solNome, telefone: formData.solFone, relacao: formData.solRelacao }
-        };
-
-      try {
-        await createOccurrence(payload);
-        console.log('Ocorrência criada com sucesso');
-        alert('Ocorrência registrada com sucesso!');
-        navigate('/occurrences');
-      } catch (apiError) {
-        console.error('Falha ao criar ocorrência:', apiError);
-        alert('Erro ao salvar a ocorrência. Tente novamente.');
-      } finally {
-        setIsSubmitting(false);
-      }
-    } else {
-      console.log('Validação falhou:', errors);
+    if (!validateForm()) {
       alert('Por favor, preencha todos os campos obrigatórios destacados.');
+      return; // Interrompe se inválido
+    }
+
+    setIsSubmitting(true);
+
+    // --- 3. Formatação do Payload conforme instrução ---
+    const pickSelected = (group: { [k: string]: boolean }): string => {
+       const found = Object.entries(group).find(([, v]) => v);
+       return found ? found[0] : ''; // Retorna a CHAVE selecionada como string
+    };
+
+    let timestampRecebimentoISO = '';
+    try {
+      if (formData.dataRecebimento && formData.horaRecebimento) {
+        // Combina data e hora numa string ISO 8601 UTC
+        timestampRecebimentoISO = new Date(`${formData.dataRecebimento}T${formData.horaRecebimento}:00`).toISOString(); 
+      } else {
+         throw new Error("Data ou hora inválida"); // Segurança
+      }
+    } catch {
+       timestampRecebimentoISO = new Date().toISOString(); // Fallback (discutir se é o ideal)
+       console.warn("Usando timestamp atual como fallback devido a data/hora inválida no form.");
+    }
+    
+    // Monta o payload para a API (usando tipo OccurrenceCreatePayload)
+    const payload: OccurrenceCreatePayload = {
+      numAviso: formData.numAviso.trim(),
+      tipoOcorrencia: formData.tipoOcorrencia, // Vem do novo campo <select>
+      timestampRecebimento: timestampRecebimentoISO, // Envia string ISO
+      formaAcionamento: pickSelected(formData.formaAcionamento), // Envia string
+      situacaoOcorrencia: pickSelected(formData.situacaoOcorrencia), // Envia string
+      naturezaInicial: formData.naturezaInicial.trim(),
+      endereco: { 
+        rua: formData.endRua.trim(), 
+        numero: formData.endNumero.trim(), // 'S/N' já está tratado
+        bairro: formData.endBairro.trim(), 
+        municipio: formData.endMunicipio.trim(), 
+        referencia: formData.endReferencia?.trim() || undefined, // Envia undefined se vazio
+       },
+      solicitante: { 
+        nome: formData.solNome.trim(), 
+        telefone: formData.solFone.replace(/\D/g, ''), // Envia só dígitos
+        relacao: formData.solRelacao.trim(), 
+       },
+       // criadoPor virá do AuthContext futuramente
+    };
+    // --- Fim da Formatação ---
+
+    // Chama API
+    try {
+      await createOccurrence(payload); 
+      alert('Ocorrência registrada com sucesso!');
+      navigate('/occurrences'); 
+    } catch (apiError: unknown) {
+      console.error('Falha ao criar ocorrência:', apiError);
+      let errorMessage = 'Erro desconhecido';
+      if (apiError && typeof apiError === 'object') {
+        if ('response' in apiError && apiError.response && typeof apiError.response === 'object') {
+          const response = apiError.response as { data?: { message?: string } };
+          errorMessage = response.data?.message || errorMessage;
+        } else if ('message' in apiError && typeof apiError.message === 'string') {
+          errorMessage = apiError.message;
+        }
+      }
+      alert(`Erro ao salvar a ocorrência: ${errorMessage}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Retorno do Hook - Sem mudança
+  // Retorno do Hook
   return {
-    formData, errors, noAddressNumber, setNoAddressNumber,
-    handleChange, handleSingleChoiceChange, handleSubmit,
-    isSubmitting
+    formData,
+    errors,
+    noAddressNumber,
+    setNoAddressNumber,
+    isSubmitting,
+    handleChange,
+    handleSingleChoiceChange,
+    handleSubmit,
   };
 }

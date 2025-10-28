@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import './style.css';
 import { Sidebar } from '../Sidebar';
-import { FiMenu, FiSearch, FiBell } from 'react-icons/fi';
+import { FiMenu, FiBell } from 'react-icons/fi';
 import userAvatar from '../../../assets/react.svg';
 
 interface MainLayoutProps {
@@ -39,13 +39,6 @@ export function MainLayout({ children }: MainLayoutProps) {
             <button className="menu-toggle-btn" onClick={toggleSidebar}>
               <FiMenu />
             </button>
-          </div>
-
-          <div className="header-center">
-            <div className="search-bar">
-              <FiSearch />
-              <input type="text" placeholder="Pesquise no Sistema" />
-            </div>
           </div>
 
           <div className="header-right">

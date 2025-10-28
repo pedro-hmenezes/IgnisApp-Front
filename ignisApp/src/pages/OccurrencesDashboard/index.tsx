@@ -68,7 +68,7 @@ export default function OccurrencesDashboard() {
     <div className="occurrences-dashboard">
       <div className="dashboard-header">
         <h1>Painel de Ocorrências</h1>
-        <Link to="/register" className="new-occurrence-button">
+        <Link to="/occurrences/new" className="new-occurrence-button"> {/* <<< MUDANÇA AQUI */}
           <FiPlus /> Nova Ocorrência
         </Link>
       </div>

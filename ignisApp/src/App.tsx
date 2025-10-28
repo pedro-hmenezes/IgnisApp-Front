@@ -1,10 +1,8 @@
-// src/App.tsx
 import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { useAuth } from './contexts/AuthContext'; // Verifique se o caminho está correto
 import Home from './pages/Home';
 import Login from './pages/Login';
-import RegisterOccurrence from './pages/RegisterOccurrence';
 import BasicForm from './pages/BasicForm';
 import OngoingOccurrenceDetail from './pages/OngoingOccurrenceDetail';
 import OccurrencesDashboard from './pages/OccurrencesDashboard';
@@ -49,10 +47,10 @@ function App() {
    <Route element={<ProtectedRoutesLayout />}>
     <Route path="/" element={<Home />} />
     <Route path="/occurrences" element={<OccurrencesDashboard />} />
-    <Route path="/register" element={<RegisterOccurrence />} />
     <Route path="/register/new/:typeId" element={<BasicForm />} />
     <Route path="/ongoing/:occurrenceId" element={<OngoingOccurrenceDetail />} />
     <Route path="/users/new" element={<RegisterUser />} />
+    <Route path="/occurrences/new" element={<BasicForm />} />
 
     {/* Adicione outras rotas que estavam protegidas aqui */}
     {/* Ex: <Route path="/reports" element={<ReportsPage />} /> */}
