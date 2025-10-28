@@ -222,8 +222,10 @@ export function useBasicForm() {
       let errorMessage = 'Erro desconhecido';
       if (apiError && typeof apiError === 'object') {
         if ('response' in apiError && apiError.response && typeof apiError.response === 'object') {
-          const response = apiError.response as { data?: { message?: string } };
-          errorMessage = response.data?.message || errorMessage;
+          const response = apiError.response as { data?: { message?: string }; status?: number; statusText?: string; config?: { url?: string } };
+          const statusPart = response.status ? `[${response.status}] ` : '';
+          const urlPart = response.config?.url ? ` (${response.config.url})` : '';
+          errorMessage = `${statusPart}${response.data?.message || response.statusText || errorMessage}${urlPart}`;
         } else if ('message' in apiError && typeof apiError.message === 'string') {
           errorMessage = apiError.message;
         }
