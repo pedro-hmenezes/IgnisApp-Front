@@ -41,7 +41,15 @@ import { FiArrowLeft, FiMapPin, FiLoader, FiAlertCircle, FiTrash2 } from 'react-
           setOccurrence(data);
         } catch (err) {
           console.error(err);
-          setError('Falha ao carregar detalhes da ocorrência.');
+          // Mensagem específica para 404, quando a API não encontra a ocorrência
+          const status = (typeof err === 'object' && err !== null && 'response' in err)
+            ? (err as { response?: { status?: number } }).response?.status
+            : undefined;
+          if (status === 404) {
+            setError('Ocorrência não encontrada (404).');
+          } else {
+            setError('Falha ao carregar detalhes da ocorrência.');
+          }
         } finally {
           setIsLoading(false);
         }
@@ -163,7 +171,7 @@ import { FiArrowLeft, FiMapPin, FiLoader, FiAlertCircle, FiTrash2 } from 'react-
               </div>
               <div className="field-group">
                 <label>Status</label>
-                <span>{occurrence.status?.toUpperCase()}</span>
+                <span>{(occurrence.statusGeral || occurrence.status || 'indefinido').toUpperCase()}</span>
               </div>
               <div className="field-group">
                 <label>Viatura Pré-Atribuída</label>

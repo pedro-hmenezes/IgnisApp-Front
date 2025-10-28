@@ -133,6 +133,28 @@
   color: #3b1721;
 }
 
+/* Ações no card */
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #adb5bd;
+}
+.occurrence-card:hover .card-actions { color: #3b1721; }
+
+.occ-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.occ-btn:disabled { opacity: 0.6; cursor: default; }
+.occ-btn-finish { background: #e9ecef; color: #2c3e50; }
+.occ-btn-finish:hover { background: #dee2e6; }
+.occ-btn-cancel { background: #f8d7da; color: #721c24; }
+.occ-btn-cancel:hover { background: #f5c6cb; }
+
 /* --- Status Badges (adicionar o 'finalizada') --- */
 .status-badge {
   display: inline-block;

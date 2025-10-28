@@ -23,6 +23,7 @@ interface BaseOccurrence {
   numAviso?: string;
   naturezaInicial: string;
   status: string;
+  statusGeral?: string; // Alguns endpoints retornam este campo
   timestampRecebimento?: string; // ISO String
   formaAcionamento?: string;
   situacaoOcorrencia?: string;

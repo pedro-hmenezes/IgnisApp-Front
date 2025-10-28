@@ -2,18 +2,16 @@
 import { useState, useEffect } from 'react'; // Import useState and useEffect
 import { Link } from 'react-router-dom';
 import { FiPlus, FiChevronRight, FiClock, FiAlertCircle, FiLoader } from 'react-icons/fi'; // Import icons
-import { getOccurrences } from '../../api/occurrenceService'; // Import the API service function
+import { getOccurrences, updateOccurrence, cancelOccurrence } from '../../api/occurrenceService'; // API services
 import './style.css';
 
-// Interface para o resumo da ocorrência (ajuste conforme a API)
+// Interface para o resumo da ocorrência (conforme API real)
 interface OccurrenceSummary {
   _id: string; 
   naturezaInicial: string;
   endereco?: { municipio?: string; bairro?: string; rua?: string }; 
-  status: string;
-  timestampRecebimento?: string; // Esperamos ISO String da API
-  // Adicione outros campos se a API retornar
-  horaRecebimento?: string; // Mantém se a simulação retornar
+  statusGeral?: string; // Campo real que vem da API
+  timestampRecebimento?: string; // ISO String da API
 }
 
 export default function OccurrencesDashboard() {
@@ -21,6 +19,7 @@ export default function OccurrencesDashboard() {
   const [occurrences, setOccurrences] = useState<OccurrenceSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<Record<string, 'finalize' | 'cancel' | undefined>>({});
 
   // useEffect para buscar os dados na montagem
   useEffect(() => {
@@ -42,8 +41,8 @@ export default function OccurrencesDashboard() {
   }, []); // Roda apenas uma vez
 
   // Filtrar os dados do estado
-  const ongoing = occurrences.filter(occ => occ.status !== 'Finalizada');
-  const finished = occurrences.filter(occ => occ.status === 'Finalizada');
+  const ongoing = occurrences.filter(occ => occ.statusGeral !== 'Finalizada' && occ.statusGeral !== 'Cancelada');
+  const finished = occurrences.filter(occ => occ.statusGeral === 'Finalizada' || occ.statusGeral === 'Cancelada');
 
   // Helper para formatar endereço (opcional)
   const formatAddress = (endereco: OccurrenceSummary['endereco']): string => {
@@ -52,17 +51,51 @@ export default function OccurrencesDashboard() {
     return parts.join(', ') || 'Endereço não informado';
   };
   
-  // Helper para formatar hora (opcional, ajuste conforme formato da API)
-  const formatTime = (isoTimestamp?: string, fallbackTime?: string): string => {
+  // Helper para formatar hora
+  const formatTime = (isoTimestamp?: string): string => {
       if (isoTimestamp) {
           try {
-              // Extrai a hora do ISO string (YYYY-MM-DDTHH:mm:ss.sssZ)
               const timePart = isoTimestamp.split('T')[1].substring(0, 5); 
               return timePart;
           } catch { /* Ignora erro de formatação */ }
       }
-      return fallbackTime || '--:--'; // Retorna o mock ou um placeholder
+      return '--:--';
   }
+
+  // --- Ações ---
+  const handleFinalize = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm('Deseja marcar esta ocorrência como Finalizada?')) return;
+    try {
+      setActionLoading(prev => ({ ...prev, [id]: 'finalize' }));
+      await updateOccurrence(id, { statusGeral: 'Finalizada' });
+      setOccurrences(prev => prev.map(o => (o._id === id ? { ...o, statusGeral: 'Finalizada' } : o)));
+      alert('Ocorrência finalizada com sucesso!');
+    } catch (err) {
+      console.error('Erro ao finalizar ocorrência:', err);
+      alert('Falha ao finalizar a ocorrência.');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [id]: undefined }));
+    }
+  };
+
+  const handleCancel = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm('Deseja cancelar esta ocorrência?')) return;
+    try {
+      setActionLoading(prev => ({ ...prev, [id]: 'cancel' }));
+      await cancelOccurrence(id);
+  setOccurrences(prev => prev.map(o => (o._id === id ? { ...o, statusGeral: 'Cancelada' } : o)));
+      alert('Ocorrência cancelada com sucesso!');
+    } catch (err) {
+      console.error('Erro ao cancelar ocorrência:', err);
+      alert('Falha ao cancelar a ocorrência.');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [id]: undefined }));
+    }
+  };
 
   return (
     <div className="occurrences-dashboard">
@@ -101,17 +134,33 @@ export default function OccurrencesDashboard() {
                   {ongoing.map((occurrence) => (
                     <Link to={`/ongoing/${occurrence._id}`} key={occurrence._id} className="occurrence-card">
                        <div className="card-content">
-                        <span className={`status-badge status-${occurrence.status.toLowerCase().replace(/ /g, '-')}`}>
-                          {occurrence.status}
+                        <span className={`status-badge status-${(occurrence.statusGeral || 'recebida').toLowerCase().replace(/ /g, '-')}`}>
+                          {occurrence.statusGeral || 'Recebida'}
                         </span>
                         <h3>{occurrence.naturezaInicial}</h3>
                         <p className="address">{formatAddress(occurrence.endereco)}</p> 
                         <div className="time-info">
                           <FiClock size={14} />
-                          <span>Recebido às {formatTime(occurrence.timestampRecebimento, occurrence.horaRecebimento)}</span> 
+                          <span>Recebido às {formatTime(occurrence.timestampRecebimento)}</span> 
                         </div>
                       </div>
-                      <div className="card-action">
+                      <div className="card-actions">
+                        <button
+                          className="occ-btn occ-btn-finish"
+                          disabled={actionLoading[occurrence._id] === 'finalize'}
+                          onClick={(e) => handleFinalize(e, occurrence._id)}
+                          title="Marcar como Finalizada"
+                        >
+                          {actionLoading[occurrence._id] === 'finalize' ? 'Finalizando...' : 'Finalizar'}
+                        </button>
+                        <button
+                          className="occ-btn occ-btn-cancel"
+                          disabled={actionLoading[occurrence._id] === 'cancel'}
+                          onClick={(e) => handleCancel(e, occurrence._id)}
+                          title="Cancelar ocorrência"
+                        >
+                          {actionLoading[occurrence._id] === 'cancel' ? 'Cancelando...' : 'Cancelar'}
+                        </button>
                         <FiChevronRight size={24} />
                       </div>
                     </Link>
@@ -130,17 +179,17 @@ export default function OccurrencesDashboard() {
                   {finished.map((occurrence) => (
                     <Link to={`/ongoing/${occurrence._id}`} key={occurrence._id} className="occurrence-card finished">
                        <div className="card-content">
-                         <span className={`status-badge status-${occurrence.status.toLowerCase().replace(/ /g, '-')}`}>
-                          {occurrence.status}
+                         <span className={`status-badge status-${(occurrence.statusGeral || 'finalizada').toLowerCase().replace(/ /g, '-')}`}>
+                          {occurrence.statusGeral || 'Finalizada'}
                         </span>
                         <h3>{occurrence.naturezaInicial}</h3>
                          <p className="address">{formatAddress(occurrence.endereco)}</p>
                         <div className="time-info">
                           <FiClock size={14} />
-                          <span>Recebido às {formatTime(occurrence.timestampRecebimento, occurrence.horaRecebimento)}</span>
+                          <span>Recebido às {formatTime(occurrence.timestampRecebimento)}</span>
                         </div>
                       </div>
-                      <div className="card-action">
+                      <div className="card-actions">
                         <FiChevronRight size={24} />
                       </div>
                     </Link>
