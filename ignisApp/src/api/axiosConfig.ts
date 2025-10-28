@@ -55,20 +55,25 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   response => response, 
   error => {
+    // TEMPORARIAMENTE DESABILITADO - permite trabalhar sem autenticação
+    // if (error.response && error.response.status === 401) {
+    //   console.warn("AxiosInterceptor: Erro 401 (Não Autorizado) detectado. Deslogando...");
+    //   
+    //   localStorage.removeItem(TOKEN_KEY);
+    //   localStorage.removeItem(PROFILE_KEY);
+    //   delete apiClient.defaults.headers.common['Authorization']; 
+    //
+    //   if (window.location.pathname !== '/login') {
+    //     alert("Sua sessão expirou ou é inválida. Por favor, faça login novamente."); 
+    //     window.location.href = '/login'; 
+    //   }
+    // }
+    
+    // Apenas loga o erro sem redirecionar
     if (error.response && error.response.status === 401) {
-      console.warn("AxiosInterceptor: Erro 401 (Não Autorizado) detectado. Deslogando...");
-      
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(PROFILE_KEY);
-      // Remove o header padrão do apiClient para futuras requisições nesta sessão
-      delete apiClient.defaults.headers.common['Authorization']; 
-
-      if (window.location.pathname !== '/login') {
-        alert("Sua sessão expirou ou é inválida. Por favor, faça login novamente."); 
-        // Usar window.location.href força um reload completo, limpando qualquer estado React residual
-        window.location.href = '/login'; 
-      }
+      console.warn("Erro 401: Autenticação necessária (temporariamente ignorado)");
     }
+    
     // Repassa o erro para a chamada original (no service/componente) tratar
     return Promise.reject(error); 
   }
