@@ -70,3 +70,7 @@ export interface TimelineEvent {
   time: string;
   event: string;
 }
+
+// Payload para atualização parcial de ocorrência (PATCH)
+// Permite atualizar quaisquer campos do payload de criação de forma opcional.
+export type OccurrenceUpdatePayload = Partial<OccurrenceCreatePayload> & Record<string, unknown>;
