@@ -45,7 +45,7 @@ function App() {
 
    {/* Rotas "protegidas" (agora acessíveis diretamente) */}
    <Route element={<ProtectedRoutesLayout />}>
-    <Route path="/" element={<Home />} />
+    <Route path="/home" element={<Home />} />
     <Route path="/occurrences" element={<OccurrencesDashboard />} />
     <Route path="/register/new/:typeId" element={<BasicForm />} />
     <Route path="/ongoing/:occurrenceId" element={<OngoingOccurrenceDetail />} />
@@ -60,8 +60,11 @@ function App() {
 
    </Route>
 
-   {/* Rota Padrão: Redireciona para home se nenhuma outra rota combinar */}
-   <Route path="*" element={<Navigate to="/" replace />} />
+   {/* Rota Raiz: Redireciona para login */}
+   <Route path="/" element={<Navigate to="/login" replace />} />
+   
+   {/* Rota Padrão: Redireciona para login se nenhuma outra rota combinar */}
+   <Route path="*" element={<Navigate to="/login" replace />} />
   </Routes>
  );
 }
