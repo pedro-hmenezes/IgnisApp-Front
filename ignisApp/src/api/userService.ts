@@ -28,33 +28,31 @@ interface UserCreatedResponse {
 export const createUser = async (userData: UserCreatePayload): Promise<UserCreatedResponse> => {
   try {
     console.log("Chamando API para criar usuário:", { ...userData, password: '***' }); // Log sem a senha
-
-  // === CHAMADA REAL (Descomentar depois) ===
-  // Se quiser usar a chamada real, descomente a linha abaixo e importe `apiClient` no topo do arquivo:
-  const response = await apiClient.post<UserCreatedResponse>('/users', userData); // Ajuste o endpoint '/users' se necessário
-   return response.data;
-  // =======================================
-
-    // === SIMULAÇÃO ===
-    await new Promise(resolve => setTimeout(resolve, 700)); // Simula delay
-    // Cria um mock da resposta, omitindo a senha e adicionando ID/timestamps
-    const mockUserResponse: UserCreatedResponse = {
-      _id: `mock_user_${Date.now()}`,
-      name: userData.name,
-      email: userData.email,
-      role: userData.role,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    console.log("Simulação: Usuário criado:", mockUserResponse);
-    return mockUserResponse;
-    // === FIM SIMULAÇÃO ===
-
-  } catch (error) {
-    console.error("Erro ao criar usuário:", error);
-    // Verificar se o erro tem uma resposta da API com mensagem específica
-    // Ex: if (axios.isAxiosError(error) && error.response?.data?.message) { throw new Error(error.response.data.message); }
-    throw error; // Relança o erro para o componente/hook tratar
+    // Tentativa principal (sem prefixo)
+    const response = await apiClient.post<UserCreatedResponse>('/users', userData);
+    return response.data;
+  } catch (error: unknown) {
+    // Fallback: se rota estiver montada com prefixo /api
+    if (error && typeof error === 'object' && 'response' in error) {
+      const resp = (error as { response?: { status?: number } }).response;
+      if (resp?.status === 404) {
+        try {
+          console.warn('createUser: 404 em /users, tentando /api/users');
+          const alt = await apiClient.post<UserCreatedResponse>('/api/users', userData);
+          return alt.data;
+        } catch (fallbackErr) {
+          console.error('Erro no fallback POST /api/users:', fallbackErr);
+          throw fallbackErr;
+        }
+      }
+    }
+    // Reempacotar mensagem amigável
+    let message = 'Falha ao cadastrar usuário.';
+    if (error && typeof error === 'object') {
+      const e = error as { response?: { data?: { message?: string } }; message?: string };
+      message = e.response?.data?.message || e.message || message;
+    }
+    throw new Error(message);
   }
 };
 

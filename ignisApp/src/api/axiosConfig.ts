@@ -34,6 +34,14 @@ apiClient.interceptors.request.use(
     } else if (!token) {
       // console.log('AxiosInterceptor: Nenhum token encontrado.');
     }
+    // Log do request (leve). Útil para depurar 404/401
+    try {
+      const method = (config.method || 'get').toUpperCase();
+      const fullUrl = `${config.baseURL ?? ''}${config.url ?? ''}`;
+      const headers = config.headers as Record<string, unknown> | undefined;
+      const hasAuth = Boolean(headers && 'Authorization' in headers && headers.Authorization);
+      console.info(`[HTTP] ${method} ${fullUrl} auth=${hasAuth}`);
+    } catch { /* noop */ }
     return config; 
   },
   (error) => {

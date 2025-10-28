@@ -7,23 +7,31 @@ import type { OccurrenceCreatePayload, OccurrenceSummary, OccurrenceDetail, Occu
 
 // --- CREATE ---
 export const createOccurrence = async (occurrenceData: OccurrenceCreatePayload): Promise<OccurrenceDetail> => {
- try {
-  console.log("Chamando API para criar ocorrência:", occurrenceData);
-  // Chamada real à API (DESCOMENTADA)
-  const response = await apiClient.post<OccurrenceDetail>('/occurrences', occurrenceData);
-  console.log("Resposta da API (Create):", response.data);
-  return response.data;
-
-  /* // Simulação REMOVIDA/COMENTADA
-  await new Promise(resolve => setTimeout(resolve, 500));
-  const mockCreatedOccurrence: OccurrenceDetail = { ... };
-  console.log("Simulação: Ocorrência criada:", mockCreatedOccurrence);
-  return mockCreatedOccurrence;
-  */
- } catch (error) {
-  console.error("Erro ao criar ocorrência:", error);
-  throw error; // Repassa o erro
- }
+  try {
+    console.log("Chamando API para criar ocorrência:", occurrenceData);
+    // Tentativa principal
+    const response = await apiClient.post<OccurrenceDetail>('/occurrences', occurrenceData);
+    console.log("Resposta da API (Create):", response.data);
+    return response.data;
+  } catch (error: unknown) {
+    // Fallback automático para diferença de prefixo
+    if (error && typeof error === 'object' && 'response' in error) {
+      const resp = (error as { response?: { status?: number } }).response;
+      if (resp?.status === 404) {
+        try {
+          console.warn('CreateOccurrence: 404 em /occurrences, tentando /api/occurrences');
+          const alt = await apiClient.post<OccurrenceDetail>('/api/occurrences', occurrenceData);
+          console.log('Resposta da API (Create - fallback):', alt.data);
+          return alt.data;
+        } catch (fallbackErr) {
+          console.error('Erro no fallback /api/occurrences:', fallbackErr);
+          throw fallbackErr;
+        }
+      }
+    }
+    console.error('Erro ao criar ocorrência:', error);
+    throw error;
+  }
 };
 
 // --- READ (List) ---
@@ -41,7 +49,21 @@ export const getOccurrences = async (): Promise<OccurrenceSummary[]> => {
   console.log("Simulação: Lista de ocorrências:", mockOccurrencesList);
   return mockOccurrencesList;
   */
- } catch (error) {
+ } catch (error: unknown) {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const resp = (error as { response?: { status?: number } }).response;
+    if (resp?.status === 404) {
+      try {
+        console.warn('getOccurrences: 404 em /occurrences, tentando /api/occurrences');
+        const alt = await apiClient.get<OccurrenceSummary[]>('/api/occurrences');
+        console.log('Resposta da API (List - fallback):', alt.data);
+        return alt.data;
+      } catch (fallbackErr) {
+        console.error('Erro no fallback GET /api/occurrences:', fallbackErr);
+        throw fallbackErr;
+      }
+    }
+  }
   console.error("Erro ao buscar ocorrências:", error);
   throw error;
  }
@@ -64,7 +86,21 @@ export const getOccurrenceById = async (id: string): Promise<OccurrenceDetail> =
   console.log("Simulação: Detalhe da ocorrência:", found);
   return found;
   */
- } catch (error) {
+ } catch (error: unknown) {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const resp = (error as { response?: { status?: number } }).response;
+    if (resp?.status === 404) {
+      try {
+        console.warn(`getOccurrenceById: 404 em /occurrences/${id}, tentando /api/occurrences/${id}`);
+        const alt = await apiClient.get<OccurrenceDetail>(`/api/occurrences/${id}`);
+        console.log('Resposta da API (Single - fallback):', alt.data);
+        return alt.data;
+      } catch (fallbackErr) {
+        console.error('Erro no fallback GET /api/occurrences/:id:', fallbackErr);
+        throw fallbackErr;
+      }
+    }
+  }
   console.error(`Erro ao buscar ocorrência ${id}:`, error);
   throw error;
  }
@@ -85,7 +121,21 @@ export const updateOccurrence = async (id: string, updateData: OccurrenceUpdateP
   console.log("Simulação: Ocorrência atualizada:", mockUpdated);
   return mockUpdated;
   */
- } catch (error) {
+ } catch (error: unknown) {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const resp = (error as { response?: { status?: number } }).response;
+    if (resp?.status === 404) {
+      try {
+        console.warn(`updateOccurrence: 404 em /occurrences/${id}, tentando /api/occurrences/${id}`);
+        const alt = await apiClient.patch<OccurrenceDetail>(`/api/occurrences/${id}`, updateData);
+        console.log('Resposta da API (Update - fallback):', alt.data);
+        return alt.data;
+      } catch (fallbackErr) {
+        console.error('Erro no fallback PATCH /api/occurrences/:id:', fallbackErr);
+        throw fallbackErr;
+      }
+    }
+  }
   console.error(`Erro ao atualizar ocorrência ${id}:`, error);
   throw error;
  }
@@ -103,7 +153,21 @@ export const updateOccurrence = async (id: string, updateData: OccurrenceUpdateP
   await new Promise(resolve => setTimeout(resolve, 300));
   console.log("Simulação: Ocorrência cancelada:", id);
   */
- } catch (error) {
+ } catch (error: unknown) {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const resp = (error as { response?: { status?: number } }).response;
+    if (resp?.status === 404) {
+      try {
+        console.warn(`cancelOccurrence: 404 em /occurrences/${id}/cancel, tentando /api/occurrences/${id}/cancel`);
+        await apiClient.patch(`/api/occurrences/${id}/cancel`);
+        console.log('Resposta da API (Cancel - fallback): OK');
+        return;
+      } catch (fallbackErr) {
+        console.error('Erro no fallback PATCH /api/occurrences/:id/cancel:', fallbackErr);
+        throw fallbackErr;
+      }
+    }
+  }
   console.error(`Erro ao cancelar ocorrência ${id}:`, error);
   throw error;
  }
