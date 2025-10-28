@@ -3,7 +3,6 @@ import axios from 'axios';
 
 // Chaves do localStorage (DEVEM ser as mesmas do AuthContext)
 const TOKEN_KEY = 'ignis_auth_token'; 
-const PROFILE_KEY = 'ignis_user_profile'; 
 
 // Usa exatamente a baseURL informada (sem acrescentar "/api").
 // Se nada vier no env, usa https://ignisappback.onrender.com
