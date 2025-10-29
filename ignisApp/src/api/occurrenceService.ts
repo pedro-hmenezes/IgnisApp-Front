@@ -172,3 +172,29 @@ export const updateOccurrence = async (id: string, updateData: OccurrenceUpdateP
   throw error;
  }
 };
+
+// --- FINALIZE ---
+export const finalizeOccurrence = async (id: string): Promise<void> => {
+  try {
+    console.log(`Chamando API para finalizar ocorrência ID: ${id}`);
+    await apiClient.patch(`/occurrences/${id}/finalize`);
+    console.log('Resposta da API (Finalize): OK');
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'response' in error) {
+      const resp = (error as { response?: { status?: number } }).response;
+      if (resp?.status === 404) {
+        try {
+          console.warn(`finalizeOccurrence: 404 em /occurrences/${id}/finalize, tentando /api/occurrences/${id}/finalize`);
+          await apiClient.patch(`/api/occurrences/${id}/finalize`);
+          console.log('Resposta da API (Finalize - fallback): OK');
+          return;
+        } catch (fallbackErr) {
+          console.error('Erro no fallback PATCH /api/occurrences/:id/finalize:', fallbackErr);
+          throw fallbackErr;
+        }
+      }
+    }
+    console.error(`Erro ao finalizar ocorrência ${id}:`, error);
+    throw error;
+  }
+};

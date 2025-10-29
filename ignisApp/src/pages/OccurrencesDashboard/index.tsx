@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'; // Import useState and useEffect
 import { Link } from 'react-router-dom';
 import { FiPlus, FiChevronRight, FiClock, FiAlertCircle, FiLoader } from 'react-icons/fi'; // Import icons
-import { getOccurrences, updateOccurrence, cancelOccurrence } from '../../api/occurrenceService'; // API services
+import { getOccurrences, cancelOccurrence, finalizeOccurrence } from '../../api/occurrenceService'; // API services
 import './style.css';
 
 // Interface para o resumo da ocorrência (conforme API real)
@@ -41,8 +41,8 @@ export default function OccurrencesDashboard() {
   }, []); // Roda apenas uma vez
 
   // Filtrar os dados do estado
-  const ongoing = occurrences.filter(occ => occ.statusGeral !== 'Finalizada' && occ.statusGeral !== 'Cancelada');
-  const finished = occurrences.filter(occ => occ.statusGeral === 'Finalizada' || occ.statusGeral === 'Cancelada');
+  const ongoing = occurrences.filter(occ => (occ.statusGeral || '').toLowerCase() !== 'finalizada' && (occ.statusGeral || '').toLowerCase() !== 'cancelada');
+  const finished = occurrences.filter(occ => (occ.statusGeral || '').toLowerCase() === 'finalizada' || (occ.statusGeral || '').toLowerCase() === 'cancelada');
 
   // Helper para formatar endereço (opcional)
   const formatAddress = (endereco: OccurrenceSummary['endereco']): string => {
@@ -69,8 +69,9 @@ export default function OccurrencesDashboard() {
     if (!confirm('Deseja marcar esta ocorrência como Finalizada?')) return;
     try {
       setActionLoading(prev => ({ ...prev, [id]: 'finalize' }));
-      await updateOccurrence(id, { statusGeral: 'Finalizada' });
-      setOccurrences(prev => prev.map(o => (o._id === id ? { ...o, statusGeral: 'Finalizada' } : o)));
+      // Usar endpoint dedicado do backend
+      await finalizeOccurrence(id);
+      setOccurrences(prev => prev.map(o => (o._id === id ? { ...o, statusGeral: 'finalizada' } : o)));
       alert('Ocorrência finalizada com sucesso!');
     } catch (err) {
       console.error('Erro ao finalizar ocorrência:', err);
@@ -86,8 +87,8 @@ export default function OccurrencesDashboard() {
     if (!confirm('Deseja cancelar esta ocorrência?')) return;
     try {
       setActionLoading(prev => ({ ...prev, [id]: 'cancel' }));
-      await cancelOccurrence(id);
-  setOccurrences(prev => prev.map(o => (o._id === id ? { ...o, statusGeral: 'Cancelada' } : o)));
+    await cancelOccurrence(id);
+    setOccurrences(prev => prev.map(o => (o._id === id ? { ...o, statusGeral: 'cancelada' } : o)));
       alert('Ocorrência cancelada com sucesso!');
     } catch (err) {
       console.error('Erro ao cancelar ocorrência:', err);
