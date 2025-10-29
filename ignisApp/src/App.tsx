@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import BasicForm from './pages/BasicForm';
 import OngoingOccurrenceDetail from './pages/OngoingOccurrenceDetail';
 import OccurrencesDashboard from './pages/OccurrencesDashboard';
+import EditOccurrence from './pages/EditOccurrence';
 import RegisterUser from './pages/RegisterUser';
 import Reports from './pages/Reports';
 import Map from './pages/Map';
@@ -50,6 +51,7 @@ function App() {
     <Route path="/occurrences" element={<OccurrencesDashboard />} />
     <Route path="/register/new/:typeId" element={<BasicForm />} />
     <Route path="/ongoing/:occurrenceId" element={<OngoingOccurrenceDetail />} />
+    <Route path="/occurrences/:occurrenceId/edit" element={<EditOccurrence />} />
     <Route path="/users/new" element={<RegisterUser />} />
     <Route path="/occurrences/new" element={<BasicForm />} />
     

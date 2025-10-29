@@ -222,8 +222,8 @@ import { FiArrowLeft, FiMapPin, FiLoader, FiAlertCircle, FiTrash2 } from 'react-
           {cancelError && <p className="error-message cancel-error">{cancelError}</p>}
 
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}> 
-            <button className="button-secondary" disabled={isLoading || isCancelling}>Baixar Formulário Completo</button>
-            <button className="button-primary" disabled={isLoading || isCancelling}>Ver/Editar Formulário Completo</button>
+        <button className="button-secondary" disabled={isLoading || isCancelling}>Baixar Formulário Completo</button>
+        <button className="button-primary" disabled={isLoading || isCancelling} onClick={() => navigate(`/occurrences/${occurrenceId}/edit`)}>Ver/Editar Formulário Completo</button>
          </div>
         </div>
       </div>
