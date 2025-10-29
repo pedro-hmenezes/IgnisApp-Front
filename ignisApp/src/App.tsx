@@ -54,11 +54,11 @@ function App() {
     <Route path="/occurrences/:occurrenceId/edit" element={<EditOccurrence />} />
     <Route path="/users/new" element={<RegisterUser />} />
     <Route path="/occurrences/new" element={<BasicForm />} />
-    
+    <Route path="/dashboard" element={<Dashboard />} />
     {/* Rotas com placeholder (funcionalidades a implementar) */}
     <Route path="/reports" element={<Reports />} />
     <Route path="/map" element={<Map />} />
-    <Route path="/dashboard" element={<Dashboard />} />
+
     <Route path="/settings" element={<Settings />} />
 
    </Route>
