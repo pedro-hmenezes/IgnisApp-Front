@@ -5,6 +5,16 @@ import type { OccurrenceCreatePayload, OccurrenceSummary, OccurrenceDetail, Occu
 
 // --- FUNÇÕES DO SERVIÇO COM CHAMADAS REAIS ---
 
+// Evita duplicar "/api" quando o baseURL já termina com /api
+const addApiIfNeeded = (path: string): string => {
+  const base = (apiClient.defaults?.baseURL || '').replace(/\/+$/, '');
+  const hasApi = /\/api\/?$/i.test(base);
+  const cleanPath = `/${path.replace(/^\/+/, '')}`; // garante que começa com /
+  if (hasApi) return cleanPath; // base já tem /api
+  // se path já começar com /api, mantém; senão prefixa
+  return cleanPath.startsWith('/api/') ? cleanPath : `/api${cleanPath}`;
+};
+
 // --- CREATE ---
 export const createOccurrence = async (occurrenceData: OccurrenceCreatePayload): Promise<OccurrenceDetail> => {
   try {
@@ -19,8 +29,8 @@ export const createOccurrence = async (occurrenceData: OccurrenceCreatePayload):
       const resp = (error as { response?: { status?: number } }).response;
       if (resp?.status === 404) {
         try {
-          console.warn('CreateOccurrence: 404 em /occurrences, tentando /api/occurrences');
-          const alt = await apiClient.post<OccurrenceDetail>('/api/occurrences', occurrenceData);
+          console.warn('CreateOccurrence: 404 em /occurrences, tentando fallback com /api');
+          const alt = await apiClient.post<OccurrenceDetail>(addApiIfNeeded('/occurrences'), occurrenceData);
           console.log('Resposta da API (Create - fallback):', alt.data);
           return alt.data;
         } catch (fallbackErr) {
@@ -54,8 +64,8 @@ export const getOccurrences = async (): Promise<OccurrenceSummary[]> => {
     const resp = (error as { response?: { status?: number } }).response;
     if (resp?.status === 404) {
       try {
-        console.warn('getOccurrences: 404 em /occurrences, tentando /api/occurrences');
-        const alt = await apiClient.get<OccurrenceSummary[]>('/api/occurrences');
+        console.warn('getOccurrences: 404 em /occurrences, tentando fallback com /api');
+        const alt = await apiClient.get<OccurrenceSummary[]>(addApiIfNeeded('/occurrences'));
         console.log('Resposta da API (List - fallback):', alt.data);
         return alt.data;
       } catch (fallbackErr) {
@@ -91,8 +101,8 @@ export const getOccurrenceById = async (id: string): Promise<OccurrenceDetail> =
     const resp = (error as { response?: { status?: number } }).response;
     if (resp?.status === 404) {
       try {
-        console.warn(`getOccurrenceById: 404 em /occurrences/${id}, tentando /api/occurrences/${id}`);
-        const alt = await apiClient.get<OccurrenceDetail>(`/api/occurrences/${id}`);
+        console.warn(`getOccurrenceById: 404 em /occurrences/${id}, tentando fallback com /api`);
+        const alt = await apiClient.get<OccurrenceDetail>(addApiIfNeeded(`/occurrences/${id}`));
         console.log('Resposta da API (Single - fallback):', alt.data);
         return alt.data;
       } catch (fallbackErr) {
@@ -126,8 +136,8 @@ export const updateOccurrence = async (id: string, updateData: OccurrenceUpdateP
     const resp = (error as { response?: { status?: number } }).response;
     if (resp?.status === 404) {
       try {
-        console.warn(`updateOccurrence: 404 em /occurrences/${id}, tentando /api/occurrences/${id}`);
-        const alt = await apiClient.patch<OccurrenceDetail>(`/api/occurrences/${id}`, updateData);
+        console.warn(`updateOccurrence: 404 em /occurrences/${id}, tentando fallback com /api`);
+        const alt = await apiClient.patch<OccurrenceDetail>(addApiIfNeeded(`/occurrences/${id}`), updateData);
         console.log('Resposta da API (Update - fallback):', alt.data);
         return alt.data;
       } catch (fallbackErr) {
@@ -158,8 +168,8 @@ export const updateOccurrence = async (id: string, updateData: OccurrenceUpdateP
     const resp = (error as { response?: { status?: number } }).response;
     if (resp?.status === 404) {
       try {
-        console.warn(`cancelOccurrence: 404 em /occurrences/${id}/cancel, tentando /api/occurrences/${id}/cancel`);
-        await apiClient.patch(`/api/occurrences/${id}/cancel`);
+        console.warn(`cancelOccurrence: 404 em /occurrences/${id}/cancel, tentando fallback com /api`);
+        await apiClient.patch(addApiIfNeeded(`/occurrences/${id}/cancel`));
         console.log('Resposta da API (Cancel - fallback): OK');
         return;
       } catch (fallbackErr) {
@@ -171,30 +181,4 @@ export const updateOccurrence = async (id: string, updateData: OccurrenceUpdateP
   console.error(`Erro ao cancelar ocorrência ${id}:`, error);
   throw error;
  }
-};
-
-// --- FINALIZE ---
-export const finalizeOccurrence = async (id: string): Promise<void> => {
-  try {
-    console.log(`Chamando API para finalizar ocorrência ID: ${id}`);
-    await apiClient.patch(`/occurrences/${id}/finalize`);
-    console.log('Resposta da API (Finalize): OK');
-  } catch (error: unknown) {
-    if (error && typeof error === 'object' && 'response' in error) {
-      const resp = (error as { response?: { status?: number } }).response;
-      if (resp?.status === 404) {
-        try {
-          console.warn(`finalizeOccurrence: 404 em /occurrences/${id}/finalize, tentando /api/occurrences/${id}/finalize`);
-          await apiClient.patch(`/api/occurrences/${id}/finalize`);
-          console.log('Resposta da API (Finalize - fallback): OK');
-          return;
-        } catch (fallbackErr) {
-          console.error('Erro no fallback PATCH /api/occurrences/:id/finalize:', fallbackErr);
-          throw fallbackErr;
-        }
-      }
-    }
-    console.error(`Erro ao finalizar ocorrência ${id}:`, error);
-    throw error;
-  }
 };
