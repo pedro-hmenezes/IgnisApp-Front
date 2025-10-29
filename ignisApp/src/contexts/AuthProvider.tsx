@@ -38,52 +38,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  // === Função de Login REAL (chama API) ===
+  // === Função de Login LOCAL (credenciais fixas: admin/admin) ===
   const login = async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    console.log('AuthContext: Tentando login via API com:', { username });
-    try {
-      // Ajuste o tipo de resposta esperado <...> conforme sua API REAL retorna
-      const response = await apiClient.post<{ token: string; user: { profile: UserProfile } }>('/auth/login', { username, password });
+    console.log('AuthContext: Tentando login local com:', { username });
+    
+    // Simula delay de rede
+    await new Promise(resolve => setTimeout(resolve, 300));
 
-      const { token, user } = response.data;
-
-      // Verifica se recebeu token e perfil
-      if (token && user?.profile) {
-        localStorage.setItem(TOKEN_KEY, token);        // Salva token
-        localStorage.setItem(PROFILE_KEY, user.profile); // Salva perfil
-        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`; // Configura Axios para esta sessão
-        setIsAuthenticated(true);
-        setUserProfile(user.profile);
-        console.log(`AuthContext: Login via API bem-sucedido como ${user.profile}. Token salvo.`);
-        setIsLoading(false);
-        return true; // Sucesso
-      } else {
-         // Se a API retornou 200 OK mas sem token/perfil, algo está errado
-         throw new Error("Resposta inválida da API de login (token ou perfil ausente).");
-      }
-
-    } catch (error) {
-      console.error('AuthContext: Falha no login via API', error);
-      // Limpa qualquer token/perfil antigo em caso de erro
+    // Verifica credenciais fixas
+    if (username === 'admin' && password === 'admin') {
+      const mockToken = 'mock-token-admin-' + Date.now();
+      const profile: UserProfile = 'admin';
+      
+      localStorage.setItem(TOKEN_KEY, mockToken);
+      localStorage.setItem(PROFILE_KEY, profile);
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${mockToken}`;
+      
+      setIsAuthenticated(true);
+      setUserProfile(profile);
+      console.log('AuthContext: Login local bem-sucedido como admin.');
+      setIsLoading(false);
+      return true;
+    } else {
+      console.warn('AuthContext: Credenciais inválidas.');
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(PROFILE_KEY);
       delete apiClient.defaults.headers.common['Authorization'];
-      setIsAuthenticated(false); // Garante que não está autenticado
+      setIsAuthenticated(false);
       setUserProfile(null);
       setIsLoading(false);
-      return false; // Falha
+      return false;
     }
-    /* // Simulação REMOVIDA/COMENTADA
-    console.log('AuthContext: Simulando login...');
-    await new Promise(resolve => setTimeout(resolve, 500));
-    // ... lógica da simulação ...
-    return true; // ou false
-    */
   };
   // ===================================
 
-  // --- Função de Logout (CORRETA, SEM MUDANÇA) ---
+  // --- Função de Logout ---
   const logout = () => {
     setIsAuthenticated(false);
     setUserProfile(null);
@@ -91,7 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem(PROFILE_KEY);
     delete apiClient.defaults.headers.common['Authorization'];
     console.log('AuthContext: Logout realizado. Token removido.');
-    navigate('/login');
+    navigate('/home');
   };
 
   // Valor do contexto

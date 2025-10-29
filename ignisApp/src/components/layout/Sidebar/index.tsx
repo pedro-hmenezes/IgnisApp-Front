@@ -25,7 +25,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     </div>
 
     <nav className="nav-menu">
-      <Link to="/" className="nav-item"><FiHome /> <span>Início</span></Link>
+      <Link to="/home" className="nav-item"><FiHome /> <span>Início</span></Link>
       
       {/* Exemplo: Mostrar Relatórios apenas para Chefe e Admin */}
       {(userProfile === 'chefe' || userProfile === 'admin') && (

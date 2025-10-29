@@ -1,0 +1,15 @@
+/* src/pages/Map/style.css */
+.map-container {
+  padding: 20px;
+  text-align: center;
+}
+
+.map-container h1 {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.map-container p {
+  color: #6c757d;
+}

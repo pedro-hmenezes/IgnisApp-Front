@@ -1,0 +1,15 @@
+/* src/pages/Settings/style.css */
+.settings-container {
+  padding: 20px;
+  text-align: center;
+}
+
+.settings-container h1 {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.settings-container p {
+  color: #6c757d;
+}

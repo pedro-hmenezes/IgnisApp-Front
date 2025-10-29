@@ -22,7 +22,7 @@ export default function Login() {
 
       if (loginSuccess) {
         // 7. Se o login no contexto foi sucesso, navega para a home
-        navigate('/');
+        navigate('/home');
       } else {
         // 8. Se falhou (no contexto), mostra mensagem de erro
         setError('Credenciais institucionais inválidas.');
@@ -50,7 +50,7 @@ export default function Login() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              placeholder="Digite o seu nº de matrícula"
+              placeholder="Digite o seu email corporativo"
               disabled={isLoading} // 9. Desabilita inputs durante o carregamento
             />
           </div>

@@ -1,0 +1,15 @@
+/* src/pages/Reports/style.css */
+.reports-container {
+  padding: 20px;
+  text-align: center;
+}
+
+.reports-container h1 {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.reports-container p {
+  color: #6c757d;
+}

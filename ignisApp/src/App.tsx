@@ -6,29 +6,30 @@ import Login from './pages/Login';
 import BasicForm from './pages/BasicForm';
 import OngoingOccurrenceDetail from './pages/OngoingOccurrenceDetail';
 import OccurrencesDashboard from './pages/OccurrencesDashboard';
-import RegisterUser from './pages/RegisterUser'; // Importe a página de cadastro de usuário
+import RegisterUser from './pages/RegisterUser';
+import Reports from './pages/Reports';
+import Map from './pages/Map';
+import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
 
 import './App.css';
 
-// --- ProtectedRoutesLayout MODIFICADO (Opção 2) ---
+// --- ProtectedRoutesLayout COM PROTEÇÃO ATIVA ---
 const ProtectedRoutesLayout = () => {
- const { isLoading } = useAuth();
+ const { isAuthenticated, isLoading } = useAuth();
 
  // Se ainda estiver carregando a verificação inicial, mostre algo
  if (isLoading) {
   return <div>Verificando autenticação...</div>;
  }
 
- // === BLOCO DE AUTENTICAÇÃO COMENTADO ===
- /*
+ // Se não autenticado, redireciona para login
  if (!isAuthenticated) {
-  console.log("ProtectedRoutes: Não autenticado, redirecionando para /login (DESATIVADO TEMPORARIAMENTE)");
+  console.log("ProtectedRoutes: Não autenticado, redirecionando para /login");
   return <Navigate to="/login" replace />;
  }
- */
- // ======================================
 
- // Renderiza o layout com as rotas filhas (agora sempre acessível)
+ // Renderiza o layout com as rotas filhas
  return (
   <MainLayout>
    <Outlet />
@@ -51,12 +52,12 @@ function App() {
     <Route path="/ongoing/:occurrenceId" element={<OngoingOccurrenceDetail />} />
     <Route path="/users/new" element={<RegisterUser />} />
     <Route path="/occurrences/new" element={<BasicForm />} />
-
-    {/* Adicione outras rotas que estavam protegidas aqui */}
-    {/* Ex: <Route path="/reports" element={<ReportsPage />} /> */}
-    {/* Ex: <Route path="/map" element={<MapPage />} /> */}
-    {/* Ex: <Route path="/dashboard" element={<DashboardPage />} /> */}
-    {/* Ex: <Route path="/settings" element={<SettingsPage />} /> */}
+    
+    {/* Rotas com placeholder (funcionalidades a implementar) */}
+    <Route path="/reports" element={<Reports />} />
+    <Route path="/map" element={<Map />} />
+    <Route path="/dashboard" element={<Dashboard />} />
+    <Route path="/settings" element={<Settings />} />
 
    </Route>
 
