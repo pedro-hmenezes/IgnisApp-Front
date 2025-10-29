@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'; // Import useState and useEffect
 import { Link } from 'react-router-dom';
 import { FiPlus, FiChevronRight, FiClock, FiAlertCircle, FiLoader } from 'react-icons/fi'; // Import icons
-import { getOccurrences, cancelOccurrence, finalizeOccurrence } from '../../api/occurrenceService'; // API services
+import { getOccurrences, updateOccurrence, cancelOccurrence } from '../../api/occurrenceService'; // API services
 import './style.css';
 
 // Interface para o resumo da ocorrência (conforme API real)
@@ -69,8 +69,8 @@ export default function OccurrencesDashboard() {
     if (!confirm('Deseja marcar esta ocorrência como Finalizada?')) return;
     try {
       setActionLoading(prev => ({ ...prev, [id]: 'finalize' }));
-      // Usar endpoint dedicado do backend
-      await finalizeOccurrence(id);
+      // Atualiza via PATCH /occurrences/:id
+  await updateOccurrence(id, { statusGeral: 'finalizada', status: 'finalizada' });
       setOccurrences(prev => prev.map(o => (o._id === id ? { ...o, statusGeral: 'finalizada' } : o)));
       alert('Ocorrência finalizada com sucesso!');
     } catch (err) {
