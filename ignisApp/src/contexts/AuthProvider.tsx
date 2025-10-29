@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/axiosConfig';
+import { loginUser } from '../api/authService';
 import { AuthContext } from './auth-context';
 import type { AuthContextType, UserProfile } from './auth-types'; // Garanta que estes tipos estejam exportados
 
@@ -38,33 +39,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  // === Função de Login LOCAL (credenciais fixas: admin/admin) ===
+  // Mapeia valores diversos do backend para nossos perfis conhecidos
+  const mapProfile = (raw?: string): UserProfile => {
+    const v = (raw || '').toLowerCase().trim();
+    if (!v) return 'admin';
+    if (v.includes('admin')) return 'admin';
+    if (v.includes('chefe') || v.includes('supervisor')) return 'chefe';
+    if (v.includes('op2') || v.includes('campo')) return 'op2';
+    if (v.includes('op1') || v.includes('central') || v.includes('operador')) return 'op1';
+    return 'admin';
+  };
+
+  // === Função de Login REAL (chama API do backend) ===
   const login = async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    console.log('AuthContext: Tentando login local com:', { username });
+    console.log('AuthContext: Tentando login via API com:', { username });
     
-    // Simula delay de rede
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    // Verifica credenciais fixas
-    if (username === 'admin' && password === 'admin') {
-      const mockToken = 'mock-token-admin-' + Date.now();
-      const profile: UserProfile = 'admin';
+    try {
+      // Chama a API real de login
+      const response = await loginUser(username, password);
       
-      localStorage.setItem(TOKEN_KEY, mockToken);
-      localStorage.setItem(PROFILE_KEY, profile);
-      apiClient.defaults.headers.common['Authorization'] = `Bearer ${mockToken}`;
+      const { token, user } = response;
       
-      setIsAuthenticated(true);
-      setUserProfile(profile);
-      console.log('AuthContext: Login local bem-sucedido como admin.');
-      setIsLoading(false);
-      return true;
-    } else {
-      console.warn('AuthContext: Credenciais inválidas.');
+      if (token) {
+        const profile = mapProfile(user?.perfil);
+        // Salva token e perfil no localStorage
+        localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(PROFILE_KEY, profile || 'admin');
+        
+        // Configura o header Authorization para todas as próximas requisições
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        setIsAuthenticated(true);
+        setUserProfile(profile);
+        console.log(`AuthContext: Login bem-sucedido. Perfil mapeado: ${profile}.`);
+        setIsLoading(false);
+        return true;
+      } else {
+        throw new Error('Resposta inválida da API de login (token ou usuário ausente).');
+      }
+    } catch (error: unknown) {
+      console.error('AuthContext: Falha no login via API', error);
+      
+      // Limpa qualquer token/perfil antigo em caso de erro
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(PROFILE_KEY);
       delete apiClient.defaults.headers.common['Authorization'];
+      
       setIsAuthenticated(false);
       setUserProfile(null);
       setIsLoading(false);

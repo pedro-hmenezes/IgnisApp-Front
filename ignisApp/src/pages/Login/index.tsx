@@ -9,29 +9,24 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, isLoading } = useAuth(); // 3. Use o hook para pegar a função login e o estado isLoading
-  const navigate = useNavigate();       // 4. Hook para navegação
+  const { login, isLoading } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => { // 5. Tornar a função async
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); // Limpa erros locais
+    setError('');
 
     try {
-      // 6. Chame a função login do contexto
       const loginSuccess = await login(username, password);
 
       if (loginSuccess) {
-        // 7. Se o login no contexto foi sucesso, navega para a home
         navigate('/home');
       } else {
-        // 8. Se falhou (no contexto), mostra mensagem de erro
-        setError('Credenciais institucionais inválidas.');
-        // Futuro: Lógica de bloqueio por tentativas pode vir do contexto/API
+        setError('Email ou senha inválidos. Verifique suas credenciais e tente novamente.');
       }
     } catch (err) {
-      // Captura erros inesperados (ex: falha na rede no futuro)
       console.error("Erro durante o login:", err);
-      setError('Ocorreu um erro ao tentar fazer login. Tente novamente.');
+      setError('Erro ao conectar com o servidor. Verifique sua conexão e tente novamente.');
     }
   };
 
@@ -42,16 +37,16 @@ export default function Login() {
 
         <form onSubmit={handleLogin}>
           <div className="input-group">
-            <label htmlFor="username">Login</label>
+            <label htmlFor="username">Email</label>
             <input
-              type="text"
+              type="email"
               id="username"
               name="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              placeholder="Digite o seu email corporativo"
-              disabled={isLoading} // 9. Desabilita inputs durante o carregamento
+              placeholder="Digite seu email corporativo"
+              disabled={isLoading}
             />
           </div>
           <div className="input-group">
@@ -64,13 +59,12 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="Digite sua senha"
-              disabled={isLoading} // 9. Desabilita inputs durante o carregamento
+              disabled={isLoading}
             />
           </div>
 
           {error && <p className="error-message">{error}</p>}
 
-          {/* 10. Mostra texto "Entrando..." no botão se estiver carregando */}
           <button type="submit" className="login-button" disabled={isLoading}>
             {isLoading ? 'Entrando...' : 'Entrar'}
           </button>

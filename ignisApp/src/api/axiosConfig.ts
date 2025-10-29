@@ -49,28 +49,23 @@ apiClient.interceptors.request.use(
   }
 );
 
-// === INTERCEPTOR DE RESPOSTA (Recomendado) ===
+// === INTERCEPTOR DE RESPOSTA ===
 // Trata erros globais, especialmente o 401 (Não Autorizado)
 apiClient.interceptors.response.use(
   response => response, 
   error => {
-    // TEMPORARIAMENTE DESABILITADO - permite trabalhar sem autenticação
-    // if (error.response && error.response.status === 401) {
-    //   console.warn("AxiosInterceptor: Erro 401 (Não Autorizado) detectado. Deslogando...");
-    //   
-    //   localStorage.removeItem(TOKEN_KEY);
-    //   localStorage.removeItem(PROFILE_KEY);
-    //   delete apiClient.defaults.headers.common['Authorization']; 
-    //
-    //   if (window.location.pathname !== '/login') {
-    //     alert("Sua sessão expirou ou é inválida. Por favor, faça login novamente."); 
-    //     window.location.href = '/login'; 
-    //   }
-    // }
-    
-    // Apenas loga o erro sem redirecionar
+    // Se receber 401, desloga e redireciona para login
     if (error.response && error.response.status === 401) {
-      console.warn("Erro 401: Autenticação necessária (temporariamente ignorado)");
+      console.warn("AxiosInterceptor: Erro 401 (Não Autorizado) detectado. Deslogando...");
+      
+      localStorage.removeItem(TOKEN_KEY);
+      delete apiClient.defaults.headers.common['Authorization']; 
+      
+      // Redireciona para login apenas se não estiver já na tela de login
+      if (window.location.pathname !== '/login') {
+        alert("Sua sessão expirou ou é inválida. Por favor, faça login novamente."); 
+        window.location.href = '/login'; 
+      }
     }
     
     // Repassa o erro para a chamada original (no service/componente) tratar
