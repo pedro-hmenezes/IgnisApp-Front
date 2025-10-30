@@ -1,9 +1,8 @@
-// src/pages/Login/index.tsx
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext'; // 1. Importe o hook useAuth
-import { useNavigate } from 'react-router-dom';     // 2. Importe useNavigate para redirecionar após login
+import { useAuth } from '../../contexts/AuthContext'; 
+import { useNavigate } from 'react-router-dom';     
 import './style.css';
-import logo from '../../assets/react.svg'; // Placeholder logo
+import logo from '../../assets/ignis-logo.png'; 
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -33,7 +32,11 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-container">
-        <img src={logo} alt="Ignis Group Logo" className="login-logo" />
+        <div className="brand-header">
+          <img src={logo} alt="Ignis Group" className="login-logo" />
+          <h1 className="brand-title">Ignis Group</h1>
+          <p className="brand-subtitle">Sistema de Ocorrências • CBMPE</p>
+        </div>
 
         <form onSubmit={handleLogin}>
           <div className="input-group">
@@ -71,7 +74,7 @@ export default function Login() {
         </form>
 
         <div className="login-footer">
-          <p>Esqueceu o nº matrícula ou a senha? Entre em contato com o seu superior técnico. <a href="#">Saiba Mais</a></p>
+          <p>Esqueceu o email ou a senha? Entre em contato com o seu superior técnico. <a href="#">Saiba Mais</a></p>
         </div>
       </div>
     </div>

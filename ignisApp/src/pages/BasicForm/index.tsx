@@ -10,7 +10,6 @@ const occurrenceTypeOptions = [
   { value: 'incendio', label: 'Atendimento de Incêndio' },
   { value: 'salvamento', label: 'Atendimento de Salvamento' },
   { value: 'produtos-perigosos', label: 'Atendimento de Produtos Perigosos' },
-  // Adicione outros tipos se necessário
 ];
 
 export default function BasicForm() {

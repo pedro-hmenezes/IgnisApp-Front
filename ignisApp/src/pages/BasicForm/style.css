@@ -1,10 +1,3 @@
-/* src/pages/BasicForm/style.css */
-
-/* Escopo principal para esta página */
-/*.basic-form-page {
- /* Adicione padding geral se necessário, ex: padding: 20px;
-}*/
-
 .basic-form-page .header-info {
  display: flex;
  justify-content: space-between;

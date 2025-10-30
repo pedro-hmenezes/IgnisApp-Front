@@ -1,13 +1,11 @@
-/* src/pages/Login/style.css */
-
 /* Div principal agora centraliza o conteúdo */
 .login-page {
   display: flex;
-  justify-content: center; /* Centraliza horizontalmente */
-  align-items: center;    /* Centraliza verticalmente */
+  justify-content: center; 
+  align-items: center;    
   min-height: 100vh;
   width: 100%;
-  background-color: #3d1420; /* Fundo roxo escuro */
+  background-color: #3d1420;
   padding: 20px; /* Espaçamento nas bordas em telas pequenas */
   box-sizing: border-box;
 }
@@ -25,7 +23,30 @@
 
 .login-logo {
   max-width: 130px; 
-  margin-bottom: 40px; 
+  margin-bottom: 12px; 
+}
+
+/* Cabeçalho de marca (logo + textos) */
+.brand-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 28px;
+}
+
+.brand-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #2b0f17;
+  letter-spacing: 0.2px;
+}
+
+.brand-subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #7a4853;
 }
 
 /* Estilo dos Grupos de Input */
@@ -110,8 +131,6 @@
   text-decoration: underline;
 }
 
-/* Responsividade não é mais necessária para remover coluna, 
-   mas podemos manter para ajustes finos se precisar */
 @media (max-width: 480px) {
   .login-container {
     padding: 30px 20px; /* Menos padding em telas muito pequenas */

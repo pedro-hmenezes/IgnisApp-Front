@@ -1,9 +1,8 @@
-// src/pages/RegisterUser/index.tsx
 import { useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiUserPlus, FiLoader } from 'react-icons/fi';
-import { createUser } from '../../api/userService'; // 1. Importar a função do serviço
+import { createUser } from '../../api/userService';
 import './style.css'; 
 
 // Tipos (UserFormData, UserFormErrors) - Sem mudança

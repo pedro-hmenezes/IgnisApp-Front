@@ -1,4 +1,3 @@
-/* src/pages/OngoingOccurrenceDetail/style.css */
 .detail-container {
   padding: 20px;
 }
@@ -357,7 +356,6 @@
 /* Ajuste no container de ações para espaçamento */
 .detail-actions {
   display: flex;
-  /* justify-content: flex-end; */ /* Removemos para alinhar cancelar à esquerda */
   align-items: center; /* Alinha verticalmente */
   gap: 12px;
   margin-top: 30px;

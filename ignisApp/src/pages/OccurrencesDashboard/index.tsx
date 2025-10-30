@@ -1,5 +1,4 @@
-// src/pages/OccurrencesDashboard/index.tsx
-import { useState, useEffect } from 'react'; // Import useState and useEffect
+import { useState, useEffect } from 'react'; 
 import { Link } from 'react-router-dom';
 import { FiPlus, FiChevronRight, FiClock, FiAlertCircle, FiLoader } from 'react-icons/fi'; // Import icons
 import { getOccurrences, updateOccurrence, cancelOccurrence } from '../../api/occurrenceService'; // API services
@@ -102,7 +101,7 @@ export default function OccurrencesDashboard() {
     <div className="occurrences-dashboard">
       <div className="dashboard-header">
         <h1>Painel de Ocorrências</h1>
-        <Link to="/occurrences/new" className="new-occurrence-button"> {/* <<< MUDANÇA AQUI */}
+        <Link to="/occurrences/new" className="new-occurrence-button">
           <FiPlus /> Nova Ocorrência
         </Link>
       </div>

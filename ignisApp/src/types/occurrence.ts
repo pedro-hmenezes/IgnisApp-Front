@@ -1,4 +1,3 @@
-// src/types/occurrence.ts
 // Tipos compartilhados para ocorrências
 
 // Endereço completo (usado em vários lugares)

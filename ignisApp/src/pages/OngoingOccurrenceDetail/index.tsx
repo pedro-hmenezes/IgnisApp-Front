@@ -1,4 +1,3 @@
-// src/pages/OngoingOccurrenceDetail/index.tsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 // 1. Importar updateOccurrence
@@ -95,7 +94,7 @@ import { FiArrowLeft, FiMapPin, FiLoader, FiAlertCircle, FiTrash2 } from 'react-
       );
     };
 
-    // === NOVA FUNÇÃO para Cancelar Ocorrência ===
+    // Cancelar Ocorrência
     const handleCancelOccurrence = async () => {
       if (!occurrenceId) return;
       const confirmCancel = window.confirm('Tem certeza que deseja cancelar esta ocorrência? Esta ação não pode ser desfeita.');
@@ -229,10 +228,3 @@ import { FiArrowLeft, FiMapPin, FiLoader, FiAlertCircle, FiTrash2 } from 'react-
       </div>
     );
   }
-
-// (Opcional) Atualize a interface OccurrenceDetail se precisar adicionar coordenadas
-// em src/types/occurrence.ts
-// export interface OccurrenceDetail {
-//    ...
-//    coordenadas?: { latitude?: number; longitude?: number; precisao?: number; timestamp?: string };
-// }

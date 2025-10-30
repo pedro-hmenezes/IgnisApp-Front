@@ -1,4 +1,3 @@
-/* src/pages/OccurrencesDashboard/style.css */
 .occurrences-dashboard {
   /* Espaçamento básico para o container da página */
   padding: 16px;
@@ -177,8 +176,6 @@
   border-radius: 8px;
   text-align: center;
 }
-
-/* Adicione ao final de src/pages/OccurrencesDashboard/style.css */
 
 /* Estilos para estado de carregamento */
 .loading-state, .error-state {

@@ -1,4 +1,3 @@
-// src/contexts/AuthProvider.tsx
 import React, { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';

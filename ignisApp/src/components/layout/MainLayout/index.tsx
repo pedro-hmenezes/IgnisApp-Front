@@ -1,9 +1,8 @@
-// src/components/layout/MainLayout/index.tsx
 import React, { useState, useEffect } from 'react';
 import './style.css';
 import { Sidebar } from '../Sidebar';
 import { FiMenu, FiBell } from 'react-icons/fi';
-import userAvatar from '../../../assets/react.svg';
+import userAvatar from '../../../assets/ignis-logo.png';
 
 interface MainLayoutProps {
   children: React.ReactNode;

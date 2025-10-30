@@ -1,5 +1,3 @@
-// Tipos compartilhados para autenticação
-
 export type UserProfile = 'op1' | 'op2' | 'chefe' | 'admin' | null;
 
 export interface AuthContextType {
