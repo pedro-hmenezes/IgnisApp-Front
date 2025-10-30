@@ -1,6 +1,6 @@
 # 🔥 IgnisApp - Front-End
 
-[cite_start]Interface de usuário para o sistema de Coleta e Gestão de Ocorrências do Corpo de Bombeiros Militar de Pernambuco (CBMPE). [cite: 3] Desenvolvido com React, TypeScript e Vite.
+Interface de usuário para o sistema de Coleta e Gestão de Ocorrências do Corpo de Bombeiros Militar de Pernambuco (CBMPE). Desenvolvido com React, TypeScript e Vite.
 
 ## ✨ Funcionalidades Principais
 
