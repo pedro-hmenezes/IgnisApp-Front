@@ -61,8 +61,11 @@ export interface OccurrenceCreatePayload {
   formaAcionamento: string;
   situacaoOcorrencia: string;
   naturezaInicial: string;
+  latitude: number;
+  longitude: number;
   endereco: Address;
   solicitante: Requestor;
+  criadoPor: string; // ObjectId do usuário
 }
 
 // Timeline Event (usado em detalhes)

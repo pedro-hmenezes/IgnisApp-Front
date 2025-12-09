@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useBasicForm } from '../../hooks/BasicForm/useBasicForm';
+import { MapPicker } from '../../components/MapPicker';
 import './style.css'; 
 
 // Opções para o select de Tipo de Ocorrência
@@ -16,7 +17,7 @@ export default function BasicForm() {
   const {
     formData, errors, noAddressNumber, setNoAddressNumber,
     handleChange, handleSingleChoiceChange, handleSubmit,
-    isSubmitting 
+    isSubmitting, setCoordinates
   } = useBasicForm();
   const navigate = useNavigate(); 
 
@@ -178,6 +179,17 @@ export default function BasicForm() {
                         disabled={isSubmitting} />
               </div>
            </div>
+        </fieldset>
+
+        {/* --- Fieldset Mapa --- */}
+        <fieldset>
+          <legend>Localização no Mapa</legend>
+          <MapPicker
+            onLocationSelect={setCoordinates}
+            initialLat={formData.latitude || undefined}
+            initialLng={formData.longitude || undefined}
+            error={errors.latitude || errors.longitude}
+          />
         </fieldset>
 
         {/* --- Fieldset Solicitante (REESTRUTURADO) --- */}

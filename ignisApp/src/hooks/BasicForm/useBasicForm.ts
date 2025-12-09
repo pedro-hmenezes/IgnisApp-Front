@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom'; // Removido useParams
 import { createOccurrence } from '../../api/occurrenceService';
+import { useAuth } from '../../contexts/AuthContext';
 // Importar tipos da API (ajuste o caminho se necessário)
 import type { OccurrenceCreatePayload } from '../../types/occurrence';
 
@@ -14,6 +15,8 @@ type FormData = {
   naturezaInicial: string; formaAcionamento: Checkgroup; situacaoOcorrencia: Checkgroup;
   solNome: string; solFone: string; solRelacao: string;
   endRua: string; endNumero: string; endBairro: string; endMunicipio: string; endReferencia: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 type FormErrors = { [K in keyof FormData]?: string; };
 
@@ -33,6 +36,7 @@ const formatPhone = (value: string): string => {
 // Hook Customizado
 export function useBasicForm() {
   const navigate = useNavigate();
+  const { userId } = useAuth();
   // Removido useParams - o tipo virá do formulário
 
   const [formData, setFormData] = useState<FormData>({ 
@@ -60,7 +64,9 @@ export function useBasicForm() {
     endNumero: '', 
     endBairro: '', 
     endMunicipio: '', 
-    endReferencia: '', 
+    endReferencia: '',
+    latitude: null,
+    longitude: null,
    });
   const [errors, setErrors] = useState<FormErrors>({});
   const [noAddressNumber, setNoAddressNumber] = useState(false);
@@ -155,6 +161,14 @@ export function useBasicForm() {
       newErrors.endMunicipio = 'Município é obrigatório.';
     }
     
+    if (formData.latitude === null || formData.latitude === undefined) {
+      newErrors.latitude = 'Latitude é obrigatória. Clique no mapa para selecionar.';
+    }
+    
+    if (formData.longitude === null || formData.longitude === undefined) {
+      newErrors.longitude = 'Longitude é obrigatória. Clique no mapa para selecionar.';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -196,6 +210,8 @@ export function useBasicForm() {
       formaAcionamento: pickSelected(formData.formaAcionamento), // Envia string
       situacaoOcorrencia: pickSelected(formData.situacaoOcorrencia), // Envia string
       naturezaInicial: formData.naturezaInicial.trim(),
+      latitude: formData.latitude!, // Garantido pela validação
+      longitude: formData.longitude!, // Garantido pela validação
       endereco: { 
         rua: formData.endRua.trim(), 
         numero: formData.endNumero.trim(), // 'S/N' já está tratado
@@ -208,7 +224,7 @@ export function useBasicForm() {
         telefone: formData.solFone.replace(/\D/g, ''), // Envia só dígitos
         relacao: formData.solRelacao.trim(), 
        },
-       // criadoPor virá do AuthContext futuramente
+      criadoPor: userId || '', // Vem do AuthContext
     };
     // --- Fim da Formatação ---
 
@@ -236,6 +252,20 @@ export function useBasicForm() {
     }
   };
 
+  // Função para atualizar latitude e longitude (chamada pelo mapa)
+  const setCoordinates = (lat: number, lng: number) => {
+    setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+    // Limpar erro de coordenadas se existir
+    if (errors.latitude || errors.longitude) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.latitude;
+        delete newErrors.longitude;
+        return newErrors;
+      });
+    }
+  };
+
   // Retorno do Hook
   return {
     formData,
@@ -246,5 +276,6 @@ export function useBasicForm() {
     handleChange,
     handleSingleChoiceChange,
     handleSubmit,
+    setCoordinates,
   };
 }

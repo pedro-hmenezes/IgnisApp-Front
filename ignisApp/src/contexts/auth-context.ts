@@ -5,6 +5,7 @@ import type { AuthContextType } from './auth-types';
 export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: true,
   userProfile: 'admin',
+  userId: undefined,
   login: async () => true,
   logout: () => {},
   isLoading: false,

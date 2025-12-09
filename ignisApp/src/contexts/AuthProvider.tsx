@@ -16,6 +16,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Estado inicial (começa não autenticado, isLoading true para verificação)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState<UserProfile>(null);
+  const [userId, setUserId] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(true); // Começa true
   const navigate = useNavigate();
 
@@ -24,12 +25,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log("AuthProvider: Verificando token no localStorage...");
     const storedToken = localStorage.getItem(TOKEN_KEY);
     const storedProfile = localStorage.getItem(PROFILE_KEY) as UserProfile;
+    const storedUserId = localStorage.getItem('ignis_user_id');
 
     if (storedToken && storedProfile) {
       console.log("AuthProvider: Token encontrado. Restaurando sessão...");
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
       setIsAuthenticated(true);
       setUserProfile(storedProfile);
+      setUserId(storedUserId || undefined);
       console.log(`AuthProvider: Sessão restaurada para perfil ${storedProfile}.`);
     } else {
       console.log("AuthProvider: Nenhum token válido encontrado.");
@@ -62,16 +65,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (token) {
         const profile = mapProfile(user?.perfil);
-        // Salva token e perfil no localStorage
+        // Salva token, perfil e userId no localStorage
         localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem(PROFILE_KEY, profile || 'admin');
+        localStorage.setItem(PROFILE_KEY, profile || 'admin');
+        localStorage.setItem('ignis_user_id', user?.id || '');
         
         // Configura o header Authorization para todas as próximas requisições
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         
         setIsAuthenticated(true);
         setUserProfile(profile);
-        console.log(`AuthContext: Login bem-sucedido. Perfil mapeado: ${profile}.`);
+        setUserId(user?.id);
+        console.log(`AuthContext: Login bem-sucedido. Perfil mapeado: ${profile}, userId: ${user?.id}.`);
         setIsLoading(false);
         return true;
       } else {
@@ -97,15 +102,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setIsAuthenticated(false);
     setUserProfile(null);
+    setUserId(undefined);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem('ignis_user_id');
     delete apiClient.defaults.headers.common['Authorization'];
     console.log('AuthContext: Logout realizado. Token removido.');
     navigate('/home');
   };
 
   // Valor do contexto
-  const value: AuthContextType = { isAuthenticated, userProfile, login, logout, isLoading };
+  const value: AuthContextType = { isAuthenticated, userProfile, userId, login, logout, isLoading };
 
   // Provedor
   return (
