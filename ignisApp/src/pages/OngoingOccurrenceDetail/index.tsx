@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-// 1. Importar updateOccurrence
 import { getOccurrenceById, updateOccurrence, cancelOccurrence } from '../../api/occurrenceService'; 
-import type { OccurrenceDetail } from '../../types/occurrence'; // Verifique o caminho
+import type { OccurrenceDetail } from '../../types/occurrence';
 import './style.css';
-import { FiArrowLeft, FiMapPin, FiLoader, FiAlertCircle, FiTrash2 } from 'react-icons/fi'; // Ícones necessários
+import { 
+  FiArrowLeft, FiMapPin, FiLoader, FiAlertCircle,
+  FiEdit2, FiPhone, FiUser
+} from 'react-icons/fi';
 
-  // ... (Mock da Timeline - sem mudança)
-  const mockTimeline = [ { time: '15:36', event: 'Ocorrência encontrada' }, { time: '15:05', event: 'Viatura em Deslocamento' }, { time: '14:52', event: 'Ocorrência Registrada' } ];
-
-  export default function OngoingOccurrenceDetail() {
+export default function OngoingOccurrenceDetail() {
     const { occurrenceId } = useParams<{ occurrenceId: string }>();
     const navigate = useNavigate();
 
@@ -148,83 +147,178 @@ import { FiArrowLeft, FiMapPin, FiLoader, FiAlertCircle, FiTrash2 } from 'react-
       );
     }
 
+    // Determinar status e cor
+    const status = occurrence.statusGeral || occurrence.status || 'recebida';
+    const getStatusBadgeClass = (st: string) => {
+      const s = st.toLowerCase();
+      if (s.includes('finalizada')) return 'status-finalizada';
+      if (s.includes('cancelada')) return 'status-cancelada';
+      if (s.includes('andamento') || s.includes('atendimento')) return 'status-andamento';
+      return 'status-recebida';
+    };
+
     return (
-      <div className="detail-container">
-        <div className="detail-header">
-          <button onClick={() => navigate('/occurrences')} className="back-button">
-            <FiArrowLeft /> Voltar para Lista
+      <div className="detail-container-modern">
+        {/* Header com botão voltar */}
+        <div className="detail-header-modern">
+          <button onClick={() => navigate('/occurrences')} className="back-btn-modern">
+            <FiArrowLeft size={20} />
           </button>
-          <h1>Ver Detalhes</h1>
+          <h1>Detalhes da Ocorrência</h1>
         </div>
 
-    <h2>{occurrence.naturezaInicial}</h2>
-    <p className="address-detail">{formatDetailedAddress(occurrence.enderecoCompleto, typeof occurrence.endereco === 'string' ? occurrence.endereco : undefined)}</p>
+        {/* Card Principal - Hero */}
+        <div className="hero-card">
+          <div className="hero-header">
+            <span className={`status-badge-large ${getStatusBadgeClass(status)}`}>
+              {status.toUpperCase()}
+            </span>
+            <span className="occurrence-number">#{occurrence.numAviso || occurrence._id?.slice(-6)}</span>
+          </div>
+          <h2 className="occurrence-title">{occurrence.naturezaInicial || 'Resgate de Vítima'}</h2>
+          <p className="occurrence-address">
+            <FiMapPin size={16} />
+            {formatDetailedAddress(occurrence.enderecoCompleto, typeof occurrence.endereco === 'string' ? occurrence.endereco : undefined)}
+          </p>
+        </div>
 
-        <div className="detail-grid">
-          <div className="detail-column">
-            <div className="info-card">
-              <h3>Campos</h3>
-              <div className="field-group">
-                <label>Tipo</label>
-                <span>{occurrence.naturezaInicial?.toUpperCase()}</span>
-              </div>
-              <div className="field-group">
-                <label>Status</label>
-                <span>{(occurrence.statusGeral || occurrence.status || 'indefinido').toUpperCase()}</span>
-              </div>
-              <div className="field-group">
-                <label>Viatura Pré-Atribuída</label>
-                <span>{occurrence.tipoViatura || 'N/A'}</span>
-              </div>
-              <p style={{ marginTop: '20px', color: '#888' }}><i>(Formulário da Etapa 2 virá aqui)</i></p>
-            </div>
-
-            <div className="info-card map-card">
-              <h3>Localização</h3>
-              {occurrence.coordenadas && (
-                <div className="current-coords">
-                  Lat: {occurrence.coordenadas.latitude?.toFixed(6)}, Lon: {occurrence.coordenadas.longitude?.toFixed(6)} (Precisão: {occurrence.coordenadas.precisao?.toFixed(0)}m)
+        {/* Grid com dois painéis */}
+        <div className="detail-grid-modern">
+          {/* Painel Esquerdo - Informações */}
+          <div className="detail-panel-left">
+            
+            {/* Dados da Operação */}
+            <div className="info-section">
+              <h3 className="section-title">Dados da Operação</h3>
+              <div className="info-list">
+                <div className="info-item">
+                  <span className="info-label">Viatura Empenhada:</span>
+                  <span className="info-value">{occurrence.tipoViatura || 'ABT-45'}</span>
                 </div>
-              )}
-              <div className="map-placeholder">
-                <p><i>(Componente de Mapa será inserido aqui)</i></p>
-                <button onClick={handleGetGps} className="gps-button-detail" disabled={isUpdatingGps}>
-                  {isUpdatingGps ? (<><FiLoader className="spinner-inline" size={16} /> Atualizando...</>) : (<><FiMapPin /> Obter/Atualizar GPS</>)}
-                </button>
+                <div className="info-item">
+                  <span className="info-label">Equipe (Guarnição):</span>
+                  <span className="info-value">Comandante e auxiliares...</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Descrição / Código de Encerramento:</span>
+                  <span className="info-value">Relatar as ações tomadas...</span>
+                </div>
               </div>
-              {gpsError && <p className="error-message gps-error">{gpsError}</p>}
+            </div>
+
+            {/* Registro da Operação */}
+            <div className="info-section">
+              <h3 className="section-title">Registro da Operação</h3>
+              <div className="info-list">
+                <div className="info-item">
+                  <span className="info-label">Horário de Recebimento:</span>
+                  <span className="info-value">
+                    {occurrence.timestampRecebimento 
+                      ? new Date(occurrence.timestampRecebimento).toLocaleString('pt-BR')
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Forma de Acionamento:</span>
+                  <span className="info-value">{occurrence.formaAcionamento || 'Telefone'}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Situação:</span>
+                  <span className="info-value">{occurrence.situacaoOcorrencia || 'Em Deslocamento'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Dados da Vítima/Solicitante */}
+            <div className="info-section">
+              <h3 className="section-title">Dados da Vítima/Solicitante</h3>
+              <div className="info-list">
+                <div className="info-item">
+                  <span className="info-label">
+                    <FiUser size={14} /> Solicitante/Vítima:
+                  </span>
+                  <span className="info-value">
+                    {occurrence.solicitante?.nome || 'Maria da Silva Vieira'}
+                  </span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">
+                    <FiPhone size={14} /> Contato:
+                  </span>
+                  <span className="info-value">
+                    {occurrence.solicitante?.telefone || '(81) 99999-0000'}
+                  </span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Relação com Vítima:</span>
+                  <span className="info-value">
+                    {occurrence.solicitante?.relacao || 'N/A'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Validar Local */}
+            <div className="info-section">
+              <button className="btn-action btn-location-full" onClick={handleGetGps} disabled={isUpdatingGps}>
+                {isUpdatingGps ? (
+                  <><FiLoader className="spinner-inline" size={18} /> Obtendo GPS...</>
+                ) : (
+                  <><FiMapPin size={18} /> Validar Localização</>  
+                )}
+              </button>
+              {gpsError && <p className="error-message">{gpsError}</p>}
             </div>
           </div>
 
-          <div className="detail-column">
-            <div className="info-card media-card">{/* media card placeholder */}</div>
-            <div className="info-card timeline-card">
-              <h3>Timeline (F-12)</h3>
-              <ul className="timeline">
-                {mockTimeline.map((item, idx) => (
-                  <li key={idx}><span className="time">{item.time}</span><span className="event">{item.event}</span></li>
-                ))}
-              </ul>
+          {/* Painel Direito - Ações e Timeline */}
+          <div className="detail-panel-right">
+            
+            {/* Ações Principais */}
+            <div className="actions-card">
+              <button 
+                className="btn-edit-full"
+                onClick={() => navigate(`/occurrences/${occurrenceId}/edit`)}
+                disabled={isLoading || isCancelling}
+              >
+                <FiEdit2 size={20} /> Editar Formulário Completo
+              </button>
+              
+              <button 
+                className="btn-finalize"
+                onClick={() => alert('Função de finalizar em desenvolvimento')}
+                disabled={isLoading || isCancelling || status.toLowerCase().includes('finalizada')}
+              >
+                Finalizar Ocorrência
+              </button>
+              
+              <button 
+                className="btn-cancel"
+                onClick={handleCancelOccurrence}
+                disabled={isCancelling || isLoading || status.toLowerCase().includes('cancelada')}
+              >
+                {isCancelling ? (
+                  <><FiLoader className="spinner-inline" size={20} /> Cancelando...</>
+                ) : (
+                  <>Cancelar Ocorrência</>
+                )}
+              </button>
+              {cancelError && <p className="error-message">{cancelError}</p>}
             </div>
+
+            {/* Coordenadas GPS */}
+            {occurrence.coordenadas && (
+              <div className="gps-card">
+                <h3 className="section-title">Coordenadas GPS</h3>
+                <div className="gps-info">
+                  <p><strong>Latitude:</strong> {occurrence.coordenadas.latitude?.toFixed(6)}</p>
+                  <p><strong>Longitude:</strong> {occurrence.coordenadas.longitude?.toFixed(6)}</p>
+                  <p><strong>Precisão:</strong> {occurrence.coordenadas.precisao?.toFixed(0)}m</p>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-
-        <div className="detail-actions">
-          <button 
-            className="button-danger"
-            onClick={handleCancelOccurrence}
-            disabled={isCancelling || isLoading}
-          >
-            {isCancelling ? (<><FiLoader className="spinner-inline" size={16} /> Cancelando...</>) : (<><FiTrash2 /> Cancelar Ocorrência</>)}
-          </button>
-
-          {cancelError && <p className="error-message cancel-error">{cancelError}</p>}
-
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}> 
-        <button className="button-secondary" disabled={isLoading || isCancelling}>Baixar Formulário Completo</button>
-        <button className="button-primary" disabled={isLoading || isCancelling} onClick={() => navigate(`/occurrences/${occurrenceId}/edit`)}>Ver/Editar Formulário Completo</button>
-         </div>
         </div>
       </div>
     );
-  }
+}

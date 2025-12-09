@@ -1,5 +1,5 @@
 import { useDashboardStats } from '../../hooks/useDashboardStats';
-import { FiLoader, FiAlertCircle, FiActivity, FiCheckCircle, FiXCircle, FiClock, FiTrendingUp } from 'react-icons/fi';
+import { FiLoader, FiAlertCircle, FiActivity, FiCheckCircle, FiXCircle, FiTrendingUp } from 'react-icons/fi';
 import './style.css';
 
 export default function Dashboard() {
@@ -25,7 +25,6 @@ export default function Dashboard() {
 
   // Preparar dados para gráfico de pizza (status)
   const statusData = [
-    { name: 'Recebidas', value: stats.recebidas, color: '#3b82f6' },
     { name: 'Em Atendimento', value: stats.emAtendimento, color: '#f59e0b' },
     { name: 'Finalizadas', value: stats.finalizadas, color: '#10b981' },
     { name: 'Canceladas', value: stats.canceladas, color: '#ef4444' },
@@ -47,19 +46,6 @@ export default function Dashboard() {
           <div className="metric-content">
             <h3>Total de Ocorrências</h3>
             <p className="metric-value">{stats.total}</p>
-          </div>
-        </div>
-
-        <div className="metric-card recebidas">
-          <div className="metric-icon">
-            <FiClock size={32} />
-          </div>
-          <div className="metric-content">
-            <h3>Recebidas</h3>
-            <p className="metric-value">{stats.recebidas}</p>
-            <span className="metric-percentage">
-              {stats.total > 0 ? ((stats.recebidas / stats.total) * 100).toFixed(1) : 0}%
-            </span>
           </div>
         </div>
 

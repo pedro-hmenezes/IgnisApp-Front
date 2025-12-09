@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'; 
 import { Link } from 'react-router-dom';
-import { FiPlus, FiChevronRight, FiClock, FiAlertCircle, FiLoader } from 'react-icons/fi'; // Import icons
+import { FiPlus, FiChevronRight, FiClock, FiAlertCircle, FiLoader, FiFilter } from 'react-icons/fi'; // Import icons
 import { getOccurrences, updateOccurrence, cancelOccurrence } from '../../api/occurrenceService'; // API services
 import './style.css';
 
@@ -19,6 +19,10 @@ export default function OccurrencesDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<Record<string, 'finalize' | 'cancel' | undefined>>({});
+  
+  // Estados para filtros
+  const [sortOrder, setSortOrder] = useState<'recent' | 'oldest'>('recent');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'ongoing' | 'finished' | 'canceled'>('all');
 
   // useEffect para buscar os dados na montagem
   useEffect(() => {
@@ -39,9 +43,29 @@ export default function OccurrencesDashboard() {
     fetchOccurrences();
   }, []); // Roda apenas uma vez
 
-  // Filtrar os dados do estado
+  // Aplicar filtros e ordenação
+  const filteredOccurrences = occurrences
+    .filter(occ => {
+      const status = (occ.statusGeral || '').toLowerCase();
+      
+      if (statusFilter === 'all') return true;
+      if (statusFilter === 'ongoing') return status !== 'finalizada' && status !== 'cancelada';
+      if (statusFilter === 'finished') return status === 'finalizada';
+      if (statusFilter === 'canceled') return status === 'cancelada';
+      
+      return true;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.timestampRecebimento || 0).getTime();
+      const dateB = new Date(b.timestampRecebimento || 0).getTime();
+      
+      return sortOrder === 'recent' ? dateB - dateA : dateA - dateB;
+    });
+  
+  // Separar para contadores (mantém lógica original)
   const ongoing = occurrences.filter(occ => (occ.statusGeral || '').toLowerCase() !== 'finalizada' && (occ.statusGeral || '').toLowerCase() !== 'cancelada');
-  const finished = occurrences.filter(occ => (occ.statusGeral || '').toLowerCase() === 'finalizada' || (occ.statusGeral || '').toLowerCase() === 'cancelada');
+  const finished = occurrences.filter(occ => (occ.statusGeral || '').toLowerCase() === 'finalizada');
+  const canceled = occurrences.filter(occ => (occ.statusGeral || '').toLowerCase() === 'cancelada');
 
   // Helper para formatar endereço (opcional)
   const formatAddress = (endereco: OccurrenceSummary['endereco']): string => {
@@ -106,6 +130,42 @@ export default function OccurrencesDashboard() {
         </Link>
       </div>
 
+      {/* Filtros */}
+      {!isLoading && !error && (
+        <div className="filters-container">
+          <div className="filter-group">
+            <FiFilter size={18} />
+            <span className="filter-label">Filtros:</span>
+          </div>
+          
+          <div className="filter-group">
+            <label>Ordenar:</label>
+            <select 
+              value={sortOrder} 
+              onChange={(e) => setSortOrder(e.target.value as 'recent' | 'oldest')}
+              className="filter-select"
+            >
+              <option value="recent">Mais Recentes</option>
+              <option value="oldest">Mais Antigas</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label>Status:</label>
+            <select 
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value as 'all' | 'ongoing' | 'finished' | 'canceled')}
+              className="filter-select"
+            >
+              <option value="all">Todas ({occurrences.length})</option>
+              <option value="ongoing">Em Andamento ({ongoing.length})</option>
+              <option value="finished">Finalizadas ({finished.length})</option>
+              <option value="canceled">Canceladas ({canceled.length})</option>
+            </select>
+          </div>
+        </div>
+      )}
+
       <div className="occurrences-content">
 
         {/* Renderização Condicional */}
@@ -126,13 +186,22 @@ export default function OccurrencesDashboard() {
 
         {!isLoading && !error && (
           <>
-            {/* Seção Em Andamento */}
+            {/* Lista Filtrada */}
             <section className="occurrence-section">
-              <h2>Em Andamento ({ongoing.length})</h2>
-              {ongoing.length > 0 ? (
+              <h2>
+                {statusFilter === 'all' && `Todas as Ocorrências (${filteredOccurrences.length})`}
+                {statusFilter === 'ongoing' && `Em Andamento (${filteredOccurrences.length})`}
+                {statusFilter === 'finished' && `Finalizadas (${filteredOccurrences.length})`}
+                {statusFilter === 'canceled' && `Canceladas (${filteredOccurrences.length})`}
+              </h2>
+              {filteredOccurrences.length > 0 ? (
                 <div className="occurrences-list">
-                  {ongoing.map((occurrence) => (
-                    <Link to={`/ongoing/${occurrence._id}`} key={occurrence._id} className="occurrence-card">
+                  {filteredOccurrences.map((occurrence) => (
+                    <Link 
+                      to={`/ongoing/${occurrence._id}`} 
+                      key={occurrence._id} 
+                      className={`occurrence-card ${(occurrence.statusGeral || '').toLowerCase() === 'finalizada' || (occurrence.statusGeral || '').toLowerCase() === 'cancelada' ? 'finished' : ''}`}
+                    >
                        <div className="card-content">
                         <span className={`status-badge status-${(occurrence.statusGeral || 'recebida').toLowerCase().replace(/ /g, '-')}`}>
                           {occurrence.statusGeral || 'Recebida'}
@@ -145,58 +214,38 @@ export default function OccurrencesDashboard() {
                         </div>
                       </div>
                       <div className="card-actions">
-                        <button
-                          className="occ-btn occ-btn-finish"
-                          disabled={actionLoading[occurrence._id] === 'finalize'}
-                          onClick={(e) => handleFinalize(e, occurrence._id)}
-                          title="Marcar como Finalizada"
-                        >
-                          {actionLoading[occurrence._id] === 'finalize' ? 'Finalizando...' : 'Finalizar'}
-                        </button>
-                        <button
-                          className="occ-btn occ-btn-cancel"
-                          disabled={actionLoading[occurrence._id] === 'cancel'}
-                          onClick={(e) => handleCancel(e, occurrence._id)}
-                          title="Cancelar ocorrência"
-                        >
-                          {actionLoading[occurrence._id] === 'cancel' ? 'Cancelando...' : 'Cancelar'}
-                        </button>
+                        {(occurrence.statusGeral || '').toLowerCase() !== 'finalizada' && (occurrence.statusGeral || '').toLowerCase() !== 'cancelada' && (
+                          <>
+                            <button
+                              className="occ-btn occ-btn-finish"
+                              disabled={actionLoading[occurrence._id] === 'finalize'}
+                              onClick={(e) => handleFinalize(e, occurrence._id)}
+                              title="Marcar como Finalizada"
+                            >
+                              {actionLoading[occurrence._id] === 'finalize' ? 'Finalizando...' : 'Finalizar'}
+                            </button>
+                            <button
+                              className="occ-btn occ-btn-cancel"
+                              disabled={actionLoading[occurrence._id] === 'cancel'}
+                              onClick={(e) => handleCancel(e, occurrence._id)}
+                              title="Cancelar ocorrência"
+                            >
+                              {actionLoading[occurrence._id] === 'cancel' ? 'Cancelando...' : 'Cancelar'}
+                            </button>
+                          </>
+                        )}
                         <FiChevronRight size={24} />
                       </div>
                     </Link>
                   ))}
                 </div>
               ) : (
-                <p className="no-occurrences">Nenhuma ocorrência em andamento no momento.</p>
-              )}
-            </section>
-
-            {/* Seção Finalizadas (Histórico) */}
-            <section className="occurrence-section">
-              <h2>Finalizadas ({finished.length})</h2>
-               {finished.length > 0 ? (
-                <div className="occurrences-list">
-                  {finished.map((occurrence) => (
-                    <Link to={`/ongoing/${occurrence._id}`} key={occurrence._id} className="occurrence-card finished">
-                       <div className="card-content">
-                         <span className={`status-badge status-${(occurrence.statusGeral || 'finalizada').toLowerCase().replace(/ /g, '-')}`}>
-                          {occurrence.statusGeral || 'Finalizada'}
-                        </span>
-                        <h3>{occurrence.naturezaInicial}</h3>
-                         <p className="address">{formatAddress(occurrence.endereco)}</p>
-                        <div className="time-info">
-                          <FiClock size={14} />
-                          <span>Recebido às {formatTime(occurrence.timestampRecebimento)}</span>
-                        </div>
-                      </div>
-                      <div className="card-actions">
-                        <FiChevronRight size={24} />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                 <p className="no-occurrences">Nenhuma ocorrência finalizada registrada.</p>
+                <p className="no-occurrences">
+                  {statusFilter === 'all' && 'Nenhuma ocorrência registrada.'}
+                  {statusFilter === 'ongoing' && 'Nenhuma ocorrência em andamento no momento.'}
+                  {statusFilter === 'finished' && 'Nenhuma ocorrência finalizada registrada.'}
+                  {statusFilter === 'canceled' && 'Nenhuma ocorrência cancelada registrada.'}
+                </p>
               )}
             </section>
           </>

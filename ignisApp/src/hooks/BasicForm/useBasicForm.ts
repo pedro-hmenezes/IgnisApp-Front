@@ -72,13 +72,21 @@ export function useBasicForm() {
   const [noAddressNumber, setNoAddressNumber] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // useEffect para preencher data e hora automaticamente
+  // useEffect para preencher data, hora e número do aviso automaticamente
   useEffect(() => {
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     const time = now.toTimeString().split(' ')[0].substring(0, 5);
+    
+    // Gerar número do aviso automaticamente: ANO + TIMESTAMP
+    // Formato: 2025 + timestamp_simplificado (ex: 2025001234567)
+    const year = now.getFullYear();
+    const timestamp = now.getTime().toString().slice(-9); // Últimos 9 dígitos do timestamp
+    const numAviso = `${year}${timestamp}`;
+    
     setFormData(prev => ({ 
       ...prev, 
+      numAviso,
       dataRecebimento: date, 
       horaRecebimento: time 
     }));

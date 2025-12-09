@@ -11,7 +11,7 @@
 .dashboard-header h1 {
   font-size: 28px;
   font-weight: 700;
-  color: #1f2937;
+  color: #3d1420;
   margin: 0 0 8px 0;
 }
 
@@ -81,27 +81,27 @@
 }
 
 .metric-card.total .metric-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #3d1420;
   color: white;
 }
 
 .metric-card.recebidas .metric-icon {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: #6c757d;
   color: white;
 }
 
 .metric-card.em-atendimento .metric-icon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: #a02020;
   color: white;
 }
 
 .metric-card.finalizadas .metric-icon {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #6c757d;
   color: white;
 }
 
 .metric-card.canceladas .metric-icon {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: #8b8b8b;
   color: white;
 }
 
@@ -119,14 +119,14 @@
 .metric-value {
   font-size: 32px;
   font-weight: 700;
-  color: #1f2937;
+  color: #3d1420;
   margin: 0;
   line-height: 1;
 }
 
 .metric-percentage {
   font-size: 12px;
-  color: #10b981;
+  color: #6c757d;
   font-weight: 600;
   margin-top: 4px;
   display: inline-block;
@@ -152,10 +152,10 @@
 }
 
 .chart-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 20px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #3d1420;
+  margin: 0 0 4px 0;
 }
 
 .chart-container {
@@ -199,7 +199,7 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #4b5563;
+  color: #6c757d;
 }
 
 .pie-color {
@@ -215,7 +215,7 @@
 
 .pie-value {
   font-weight: 700;
-  color: #1f2937;
+  color: #3d1420;
 }
 
 /* Bar Chart */
@@ -234,7 +234,7 @@
 
 .bar-label {
   font-size: 13px;
-  color: #4b5563;
+  color: #6c757d;
   font-weight: 500;
   text-align: right;
   white-space: nowrap;
@@ -252,7 +252,7 @@
 }
 
 .bar-fill {
-  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  background: #a02020;
   height: 100%;
   border-radius: 6px;
   transition: width 0.5s ease;
@@ -264,7 +264,7 @@
   right: 8px;
   font-size: 12px;
   font-weight: 700;
-  color: #1f2937;
+  color: #3d1420;
 }
 
 /* Line Chart (Timeline) */
@@ -296,7 +296,7 @@
 .line-bar {
   width: 100%;
   max-width: 32px;
-  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  background: #3d1420;
   border-radius: 4px 4px 0 0;
   position: relative;
   transition: all 0.3s ease;
@@ -308,7 +308,7 @@
 }
 
 .line-bar:hover {
-  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  background: #a02020;
   transform: scaleY(1.05);
 }
 

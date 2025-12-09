@@ -32,12 +32,20 @@ export default function BasicForm() {
         <fieldset>
           <legend>Dados Inciais</legend>
           <div className="flex-container">
-            {/* Input Nº do Aviso */}
+            {/* Input Nº do Aviso (Gerado Automaticamente) */}
             <div className="flex-item quarter-width">
               <label htmlFor="numAviso">Nº do aviso:</label>
-              <input type="text" id="numAviso" name="numAviso" value={formData.numAviso} onChange={handleChange} placeholder="Ex: 2025001234"
-                     className={errors.numAviso ? 'input-error' : ''} disabled={isSubmitting} />
-              {errors.numAviso && <span className="error-message">{errors.numAviso}</span>}
+              <input 
+                type="text" 
+                id="numAviso" 
+                name="numAviso" 
+                value={formData.numAviso} 
+                readOnly 
+                disabled
+                style={{ backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
+                title="Número gerado automaticamente"
+              />
+              <small style={{ color: '#666', fontSize: '0.85rem' }}>(Gerado automaticamente)</small>
             </div>
              {/* Input Data */}
             <div className="flex-item quarter-width">

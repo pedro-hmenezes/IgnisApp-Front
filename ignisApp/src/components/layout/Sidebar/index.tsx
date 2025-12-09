@@ -2,8 +2,7 @@
 import './style.css';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext'; // Importe useAuth
-// 1. Adicione FiUserPlus
-import { FiHome, FiFileText, FiMap, FiBarChart2, FiSettings, FiLogOut, FiClipboard, FiChevronLeft, FiUserPlus } from 'react-icons/fi'; 
+import { FiHome, FiFileText, FiMap, FiBarChart2, FiSettings, FiLogOut, FiClipboard, FiChevronLeft, FiUsers } from 'react-icons/fi'; 
 
 interface SidebarProps {
  isOpen: boolean;
@@ -43,14 +42,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
          </>
        )}
        
-       {/* === 3. LINK CONDICIONAL PARA CADASTRO DE USUÁRIO === */}
-       {/* Mostra o link apenas se o userProfile for 'admin' */}
+       {/* Link para Gestão de Usuários (apenas admin) */}
        {userProfile === 'admin' && (
-          <Link to="/users/new" className="nav-item">
-            <FiUserPlus /> <span>Cadastrar Usuário</span>
+          <Link to="/users" className="nav-item">
+            <FiUsers /> <span>Gestão de Usuários</span>
           </Link>
        )}
-       {/* =================================================== */}
 
     </nav>
 
