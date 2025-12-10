@@ -2,7 +2,7 @@
 import './style.css';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext'; // Importe useAuth
-import { FiHome, FiFileText, FiMap, FiBarChart2, FiSettings, FiLogOut, FiClipboard, FiChevronLeft, FiUsers } from 'react-icons/fi'; 
+import { FiHome, FiFileText, FiMap, FiBarChart2, FiLogOut, FiClipboard, FiChevronLeft, FiUsers } from 'react-icons/fi'; 
 
 interface SidebarProps {
  isOpen: boolean;
@@ -52,7 +52,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     </nav>
 
     <div className="sidebar-footer">
-      <Link to="/settings" className="nav-item"><FiSettings /> <span>Configurações</span></Link>
       <button onClick={logout} className="nav-item logout-btn">
         <FiLogOut /> <span>Sair</span>
       </button>

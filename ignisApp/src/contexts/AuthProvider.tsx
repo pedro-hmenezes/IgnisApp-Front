@@ -3,8 +3,8 @@ import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/axiosConfig';
 import { loginUser } from '../api/authService';
-import { AuthContext } from './auth-context';
-import type { AuthContextType, UserProfile } from './auth-types'; // Garanta que estes tipos estejam exportados
+import { AuthContext } from './AuthContext';
+import type { AuthContextType, UserProfile } from './AuthContext';
 import LoadingScreen from '../components/LoadingScreen';
 
 // Chaves localStorage

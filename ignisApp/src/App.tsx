@@ -12,7 +12,6 @@ import UserManagement from './pages/UserManagement';
 import Reports from './pages/Reports';
 import Map from './pages/Map';
 import Dashboard from './pages/Dashboard';
-import Settings from './pages/Settings';
 
 import './App.css';
 
@@ -60,9 +59,6 @@ function App() {
     {/* Rotas com placeholder (funcionalidades a implementar) */}
     <Route path="/reports" element={<Reports />} />
     <Route path="/map" element={<Map />} />
-
-    <Route path="/settings" element={<Settings />} />
-
    </Route>
 
    {/* Rota Raiz: Redireciona para login */}
