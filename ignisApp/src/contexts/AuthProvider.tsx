@@ -5,6 +5,7 @@ import apiClient from '../api/axiosConfig';
 import { loginUser } from '../api/authService';
 import { AuthContext } from './auth-context';
 import type { AuthContextType, UserProfile } from './auth-types'; // Garanta que estes tipos estejam exportados
+import LoadingScreen from '../components/LoadingScreen';
 
 // Chaves localStorage
 const TOKEN_KEY = 'ignis_auth_token';
@@ -117,7 +118,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Provedor
   return (
     <AuthContext.Provider value={value}>
-      {!isLoading ? children : <div>Carregando autenticação...</div>}
+      {!isLoading ? children : <LoadingScreen />}
     </AuthContext.Provider>
   );
 };
