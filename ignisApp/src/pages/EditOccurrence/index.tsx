@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getOccurrenceById, updateOccurrence } from '../../api/occurrenceService';
-import type { OccurrenceDetail, OccurrenceUpdatePayload } from '../../types/occurrence';
+import type { OccurrenceDetail, OccurrenceUpdatePayload, Address } from '../../types/occurrence';
 import '../BasicForm/style.css';
 
 // Tipos locais reaproveitados do BasicForm
@@ -47,7 +47,8 @@ import '../BasicForm/style.css';
       try {
         const occ = await getOccurrenceById(occurrenceId);
         setFormData(mapOccurrenceToForm(occ));
-        setNoAddressNumber((occ.enderecoCompleto?.numero || '') === 'S/N');
+        const endereco = (occ as unknown as { endereco?: Address }).endereco || occ.enderecoCompleto;
+        setNoAddressNumber((endereco?.numero || '') === 'S/N');
       } catch (e) {
         console.error('Falha ao carregar ocorrência:', e);
         setError('Falha ao carregar dados da ocorrência');
@@ -68,11 +69,14 @@ import '../BasicForm/style.css';
     const forma = (o.formaAcionamento || '').toString();
     const situacao = (o.situacaoOcorrencia || o.statusGeral || o.status || 'recebida').toString().toLowerCase();
 
+    // Backend usa 'endereco' como objeto Address
+    const endereco = (o as unknown as { endereco?: Address }).endereco || o.enderecoCompleto;
+
     return {
       numAviso: o.numAviso || '',
       dataRecebimento,
       horaRecebimento,
-  tipoOcorrencia: (o as unknown as { tipoOcorrencia?: string }).tipoOcorrencia || '',
+      tipoOcorrencia: (o as unknown as { tipoOcorrencia?: string }).tipoOcorrencia || '',
       naturezaInicial: o.naturezaInicial || '',
       formaAcionamento: {
         telefone: forma === 'telefone',
@@ -83,17 +87,17 @@ import '../BasicForm/style.css';
       situacaoOcorrencia: {
         recebida: situacao === 'recebida',
         despachada: situacao === 'despachada',
-        emAtendimento: situacao === 'emAtendimento' || situacao === 'ematendimento',
+        emAtendimento: situacao === 'em andamento' || situacao === 'emAtendimento' || situacao === 'ematendimento',
         finalizada: situacao === 'finalizada',
       },
       solNome: o.solicitante?.nome || '',
       solFone: maskPhone(o.solicitante?.telefone || ''),
       solRelacao: o.solicitante?.relacao || '',
-      endRua: o.enderecoCompleto?.rua || (typeof o.endereco === 'string' ? o.endereco : '') || '',
-      endNumero: o.enderecoCompleto?.numero || '',
-      endBairro: o.enderecoCompleto?.bairro || o.endereco?.bairro || '',
-      endMunicipio: o.enderecoCompleto?.municipio || o.endereco?.municipio || '',
-      endReferencia: o.enderecoCompleto?.referencia || '',
+      endRua: endereco?.rua || '',
+      endNumero: endereco?.numero || '',
+      endBairro: endereco?.bairro || '',
+      endMunicipio: endereco?.municipio || '',
+      endReferencia: endereco?.referencia || '',
     };
   };
 

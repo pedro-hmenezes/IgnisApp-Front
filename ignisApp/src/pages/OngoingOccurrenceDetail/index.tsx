@@ -56,9 +56,10 @@ export default function OngoingOccurrenceDetail() {
       fetchOccurrenceDetail();
     }, [occurrenceId, navigate]);
 
-    const formatDetailedAddress = (addr: OccurrenceDetail['enderecoCompleto'], fallback?: string): string => {
-      if (addr) return `${addr.rua}, ${addr.numero} - ${addr.bairro}, ${addr.municipio}`;
-      return fallback || 'Endereço não disponível';
+    const formatDetailedAddress = (occurrence: OccurrenceDetail): string => {
+      const addr = (occurrence as unknown as { endereco?: { rua?: string; numero?: string; bairro?: string; municipio?: string } }).endereco || occurrence.enderecoCompleto;
+      if (addr && addr.rua) return `${addr.rua}, ${addr.numero} - ${addr.bairro}, ${addr.municipio}`;
+      return 'Endereço não disponível';
     };
 
     const handleGetGps = () => {
@@ -178,7 +179,7 @@ export default function OngoingOccurrenceDetail() {
           <h2 className="occurrence-title">{occurrence.naturezaInicial || 'Resgate de Vítima'}</h2>
           <p className="occurrence-address">
             <FiMapPin size={16} />
-            {formatDetailedAddress(occurrence.enderecoCompleto, typeof occurrence.endereco === 'string' ? occurrence.endereco : undefined)}
+            {formatDetailedAddress(occurrence)}
           </p>
         </div>
 
